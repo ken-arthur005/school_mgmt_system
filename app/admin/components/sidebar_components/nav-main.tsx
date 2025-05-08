@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
 
 } from "@/app/admin/components/sidebar_components/ui/sidebar"
+import { LucideIcon } from "lucide-react"
 
 export function NavMain({
   items,
@@ -29,7 +30,7 @@ export function NavMain({
   }[]
 }) {
   return (
-    <SidebarGroup>
+    <SidebarGroup >
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible

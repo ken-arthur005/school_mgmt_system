@@ -18,17 +18,16 @@ import {
 import { NavMain } from "@/app/admin/components/sidebar_components/nav-main"
 
 
+import { Shell } from "lucide-react"
 
-import { TeamSwitcher } from "@/app/admin/components/sidebar_components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  SidebarMenu,
+  SidebarMenuButton,
 } from "@/app/admin/components/sidebar_components/ui/sidebar"
-import { Separator } from "./ui/separator"
-import Navbar from "../navbar_components/Navbar"
 
 // This is sample data.
 const data = {
@@ -84,10 +83,26 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher  />
+      <SidebarHeader >
+      <SidebarMenu > 
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                <Shell  className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">PETRA</span>
+                <span className="truncate text-xs">School Management System</span>
+              </div>
+             
+            </SidebarMenuButton>
+
+    </SidebarMenu>
+     
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent >
         <NavMain items={data.navMain} />
         
       </SidebarContent>
