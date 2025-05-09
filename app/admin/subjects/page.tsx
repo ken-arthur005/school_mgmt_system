@@ -1,8 +1,9 @@
 import React from 'react'
 
+
 const page = () => {
   return (
-    <div>SUBJECTS</div>
+      <h1>Subjects Page</h1>
   )
 }
 

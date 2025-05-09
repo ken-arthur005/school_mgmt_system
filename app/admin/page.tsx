@@ -10,16 +10,17 @@ import Recent from "./components/Recent";
 import Semester from "./components/Semester";
 
 
+
 export default function Page() {
   return (
     <div> 
       <div className="p-4 flex gap-4 flex-col md:flex-row ">
         <div className="w-full lg:w-2/3">
           <div className="flex gap-4 justify-between flex-wrap">
-              <UserCard type="students"/>
-              <UserCard type="teachers"/>
-              <UserCard type="non-teaching staff"/>
-              <UserCard type="parents"/>
+              <UserCard number={100} type="students"/>
+              <UserCard number={200} type="teachers"/>
+              <UserCard number={50} type="non-teaching staff"/>
+              <UserCard number={20} type="parents"/>
           </div>
           {/* FEES SECTION - MIDDLE */}
           <div className="flex gap-4 flex-col lg:flex-row my-6">
