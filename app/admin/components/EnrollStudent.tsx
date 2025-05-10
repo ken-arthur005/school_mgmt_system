@@ -1,7 +1,8 @@
 "use client";
+import React from 'react';
 import { Card, CardContent,  CardHeader, CardTitle } from '@/components/ui/card'
 import { FileUser, Plus } from 'lucide-react'
-import React from 'react'
+import  { useState,  } from 'react'
 
 import {
     Dialog,
@@ -11,9 +12,14 @@ import {
   } from "@/components/ui/dialog"
 import StudentForm from './StudentForm';
 
+
+
 const EnrollStudent = () => {
+
+    const [isOpen, setIsOpen] = useState(false);
+
     return (
-        <Dialog >
+        <Dialog open={isOpen} onOpenChange={setIsOpen} >
             <DialogTrigger asChild className='p-4 flex-1 min-w-[130px] max-w-[200px] h-full hover:shadow-2xl hover:bg-linear-to-r from-[#F8F8E1] to-[#8ACCD5]'>
                 <Card className='p-4 flex-1 min-w-[130px] h-full'>
                     <CardHeader>
@@ -26,7 +32,7 @@ const EnrollStudent = () => {
             </DialogTrigger>
             <DialogContent>
                 <DialogTitle className='text-center'>Student Enrollment Form</DialogTitle>
-                <StudentForm/>
+                <StudentForm closeDialog={()=> setIsOpen(false)}/>
             </DialogContent>
         </Dialog>
   )
