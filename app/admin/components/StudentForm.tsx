@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect } from 'react';
 
+{/* ALL IMPORTS  */}
 import { isValidPhoneNumber } from "libphonenumber-js"
 import { z } from "zod"
 import {useForm} from "react-hook-form"
@@ -23,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from '@/components/ui/textarea';
 
 
-
+{/* FORM SCHEMA  */}
 const formSchema = z.object({
   firstName: z.string().min(2, {
     message: "Name must be at least 2 letters"
@@ -113,7 +114,9 @@ const formSchema = z.object({
         };
 
     const StudentForm: React.FC<StudentFormProps> = ({closeDialog}:{closeDialog:()=>void}) => {
-    const form = useForm({
+    
+    {/* INITIAL DATA STATES */}
+        const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
             firstName: "",
@@ -138,6 +141,7 @@ const formSchema = z.object({
         }
     })
 
+    {/* DATE OF BIRTH CALCULATED TO AGE FUNCTION */}
     const dob = form.watch("dob")
     useEffect(() => {
         if (dob) {
@@ -159,6 +163,7 @@ const formSchema = z.object({
       const allergiesValue = form.watch("allergies");
       const conditionValue = form.watch("conditions");
 
+      {/* SUBMIT FUNCTION */}
       const onSubmit = (data: z.infer<typeof formSchema>) => {
         window.alert("form submission triggered");
         const local = data.guardianPhoneNumber.trim().replace(/^0/, "").replace(/^\+?233/, '');
@@ -173,7 +178,7 @@ const formSchema = z.object({
       
         console.log("Submitted", finalData);
         closeDialog();
-      };
+      }; 
 
 
   return (
@@ -189,6 +194,8 @@ const formSchema = z.object({
                     <TabsTrigger value="guardianInfo" className='text-sm'>Guardian Information</TabsTrigger>
                     <TabsTrigger value="healthInfo" className='text-sm'>Health Information</TabsTrigger>
                 </TabsList>
+
+                {/* STUDENT INFORMATION PART */}
                 <TabsContent value='studentInfo' className=''>
                 <FormField
                 control={form.control}
@@ -365,6 +372,7 @@ const formSchema = z.object({
                 </div>
                 </TabsContent>
                 
+                {/* GUARDIAN INFORMATION PART */}
                 <TabsContent value='guardianInfo' className=''>
                     <FormField
                     control={form.control}
@@ -498,7 +506,8 @@ const formSchema = z.object({
                     )}
                     />
                 </TabsContent>
-                    
+                
+                {/* HEALTH INFORMATION PART */}
                 <TabsContent value='healthInfo' className='space-y-3'>
                 <FormField
                     control={form.control}
@@ -617,7 +626,7 @@ const formSchema = z.object({
                     render={({ field }) => (
                         
                         <FormItem className='my-3 flex'>
-                        <FormLabel>Blood Type</FormLabel>
+                        <FormLabel>Blood Type (Leave blank if you do not know)</FormLabel>
                         <FormControl>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
@@ -630,6 +639,7 @@ const formSchema = z.object({
                             <SelectItem value="B">B</SelectItem>
                             <SelectItem value="AB">AB</SelectItem>
                             <SelectItem value="0">O</SelectItem>
+                            {/* <SelectItem value="">Not sure</SelectItem> */}
                         </SelectContent>
                         </Select>
                         </FormControl>
