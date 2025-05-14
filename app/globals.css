@@ -128,9 +128,9 @@
   border: none;
   font-family: 'Inter', sans-serif;
   width: 100%;
-  height: auto;
-  font-size: 1.5rem;
-  padding: 1rem;
+  height: 100%;
+  font-size: 0.875rem;
+  padding: 0.5rem;
   border-radius: 12px;
 }
 
@@ -144,16 +144,16 @@
   width: 50px;
 }
 
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .react-calendar {
     font-size: 1rem;
     padding: 0.75rem;
   }
-}
+} */
 
-@media (max-width: 480px) {
+/* @media (max-width: 480px) {
   .react-calendar {
     font-size: 0.875rem;
     padding: 0.5rem;
   }
-}
+} */

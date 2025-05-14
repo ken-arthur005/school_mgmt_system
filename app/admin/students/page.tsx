@@ -3,9 +3,10 @@ import React from 'react'
 import UserCard from '../components/Card'
 import EnrollStudent from '../components/EnrollStudent'
 import StudentDataTable from '../components/StudentDataTable';
-import { Form, columns } from "../components/StudentDataTable"
+import {  columns } from "../components/StudentDataTable"
+import {StudentForm} from "../schemas/StudentFormSchema"
 
-async function getData(): Promise<Form[]> {
+async function getData(): Promise<StudentForm[]> {
   // Fetch data from your API here.
   return [
     {

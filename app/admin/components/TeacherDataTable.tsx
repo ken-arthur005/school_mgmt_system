@@ -9,7 +9,7 @@ import {
   useReactTable,
   SortingState,
   getSortedRowModel,
-  ColumnFiltersState,
+  // ColumnFiltersState,
   getFilteredRowModel,
 } from "@tanstack/react-table"
 
@@ -35,16 +35,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { StudentForm } from '../schemas/StudentFormSchema';
+import { TeacherForm } from '../schemas/TeacherFormSchema';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
 }
 
-{/* FORM SCHEMA  */}
 
-export const columns: ColumnDef<StudentForm>[] = [
+
+export const columns: ColumnDef<TeacherForm>[] = [
   {
     accessorKey: "firstName",
     header: ({ column }) => {
@@ -137,7 +137,7 @@ export const columns: ColumnDef<StudentForm>[] = [
 
 
 
-const StudentDataTable = <TData, TValue> ({
+const TeacherDataTable = <TData, TValue> ({
     columns,
     data,
 }: DataTableProps<TData, TValue>) => {
@@ -145,7 +145,7 @@ const StudentDataTable = <TData, TValue> ({
 
 
     const [sorting, setSorting] = React.useState<SortingState>([])
-    const [globalFilter, setGlobalFilter] = useState<ColumnFiltersState>([])
+    const [globalFilter, setGlobalFilter] = useState<string>("")
     const table = useReactTable({
   
     data,
@@ -247,4 +247,4 @@ const StudentDataTable = <TData, TValue> ({
   )
 } 
 
-export default StudentDataTable
+export default TeacherDataTable
