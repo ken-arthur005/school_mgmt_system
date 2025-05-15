@@ -30,13 +30,34 @@ export const formSchema = z.object(
     .email({ message: "Please enter a valid email address" })
     .or(z.literal("")),
 
-  classes: z.array(z.string()).refine((value) => value.some((item) => item), {
-    message: "You have to select at least one item.",
-  }),
+  // classes: z.array(z.string()).refine((value) => value.some((item) => item), {
+  //   message: "You have to select at least one item.",
+  // }),
 
-  subjects: z.array(z.string()).refine((value) => value.some((item) => item), {
-    message: "You have to select at least one item.",
-  }),
+  // subjects: z.array(z.string()).refine((value) => value.some((item) => item), {
+  //   message: "You have to select at least one item.",
+  // }),
+
+  assignments: z
+    .array(
+      z.object({
+        classes: z.string().min(1, "Class is required"),
+        subjects: z
+          .array(z.string().min(1))
+          .min(1, "At least one subject must be selected"),
+      })
+    )
+    .min(1, "At least one assignment is required").refine(
+  (data) => {
+    const classes = data.map(a => a.classes);
+    return new Set(classes).size === classes.length;
+  },
+  {
+    message: "Each class can only be assigned once.",
+    path: ["assignments"],
+  }
+)
+,
 
   gender: z.enum(["male", "female"]),
 

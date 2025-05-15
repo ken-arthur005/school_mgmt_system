@@ -3,9 +3,9 @@ import React, { useEffect } from 'react';
 
 
 {/* ALL IMPORTS  */}
-import {useForm} from "react-hook-form"
+import {useForm, useFieldArray} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl,  FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from './sidebar_components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -20,8 +20,10 @@ import {
   } from "@/components/ui/popover"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formSchema,  } from '../schemas/TeacherFormSchema';
-import { Checkbox } from '@/components/ui/checkbox';
+// import { Checkbox } from '@/components/ui/checkbox';
 import type {TeacherForm} from '../schemas/TeacherFormSchema'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MultiSelect } from '@/components/ui/multiselect';
 
 
         type TeacherFormProps ={
@@ -44,6 +46,7 @@ import type {TeacherForm} from '../schemas/TeacherFormSchema'
             email: "",
             address: "",
             GPSaddress:"",
+            assignments:[],
         }
     })
 
@@ -84,72 +87,22 @@ import type {TeacherForm} from '../schemas/TeacherFormSchema'
         closeDialog();
       }; 
 
-      const classes = [
-        {
-            id: "1",
-            label: "class 1",
-        },
-        {
-            id: "2",
-            label: "class 2",
-        },
-        {
-            id: "3",
-            label: "class 3",
-        },
-        {
-            id: "4",
-            label: "class 4",
-        },
-        {
-            id: "5",
-            label: "class 5",
-        },
-        {
-            id: "6",
-            label: "class 6",
-        },
-        {
-            id: "7",
-            label: "jhs 1",
-        },
-        {
-            id: "8",
-            label: "jhs 2",
-        },
-        {
-            id: "9",
-            label: "jhs 3",
-        },
-        ] as const
+      const { fields, append, remove } = useFieldArray({
+            control: form.control,
+            name: "assignments",
+        });
 
+
+      const classes = [
+        { id: "class-6", name: "Class 6" },
+        { id: "jhs-3", name: "JHS 3" },
+            ];
 
         const subjects = [
-        {
-            id: "mathematics",
-            label: "mathematics",
-        },
-        {
-            id: "science",
-            label: "science",
-        },
-        {
-            id: "english",
-            label: "english",
-        },
-        {
-            id: "history",
-            label: "history",
-        },
-        {
-            id: "owop",
-            label: "owop",
-        },
-        {
-            id: "social",
-            label: "social",
-        },
-        ] as const
+        { id: "maths", name: "Maths" },
+        { id: "science", name: "Science" },
+        { id: "history", name: "History" },
+        ];
 
   return (
       
@@ -383,7 +336,7 @@ import type {TeacherForm} from '../schemas/TeacherFormSchema'
                 
                 {/* PROFESSIONAL INFORMATION PART */}
                 <TabsContent value='ProfessionalInfo' className=''>
-                    <FormField
+                    {/* <FormField
                         control={form.control}
                         name="classes"
                         render={() => (
@@ -480,7 +433,49 @@ import type {TeacherForm} from '../schemas/TeacherFormSchema'
                             </FormItem>
                             )}
                     />
-                    
+                     */}
+
+                         {fields.map((field, index) => (
+        <div key={field.id} className="p-4 border rounded-md space-y-3">
+          <label className="text-sm font-semibold">Assignment {index + 1}</label>
+
+          {/* Class Select */}
+          <Select onValueChange={(val) => form.setValue(`assignments.${index}.classes`, val)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Class" />
+            </SelectTrigger>
+            <SelectContent>
+              {classes.map((cls) => (
+                <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Subject Multi-Select */}
+          <MultiSelect
+            options={subjects}
+            selected={form.watch(`assignments.${index}.subjects`) || []}
+            onChange={(val) => form.setValue(`assignments.${index}.subjects`, val)}
+          />
+
+          <Button variant="destructive" type="button" onClick={() => remove(index)}>Remove</Button>
+        </div>
+      ))}
+
+      <Button
+        type="button"
+        onClick={() =>
+          append({
+            classes: "",
+            subjects: [],
+          })
+        }
+      >
+        + Add Class Assignment
+      </Button>
+
+      
+
                 </TabsContent>
 
                 <Button type="submit">Submit</Button>
