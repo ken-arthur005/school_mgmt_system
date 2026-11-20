@@ -1,0 +1,9 @@
+{
+  "extends": "@school-mgmt/config/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": []
+  },
+  "include": ["src", "*.config.ts", "*.config.js"]
+}
