@@ -70,6 +70,14 @@ or a staff member who is also a guardian). Students do not log in (maybe later, 
     `checkout -b`, `branch`, `merge`, `rebase`, `push`, `stash`, `reset`, `tag`, and no `gh`
     commands. The developer does all git and GitHub work. Read-only commands
     (`git status`, `git diff`, `git log`) are fine when useful.
+14. **Ask clarifying questions before starting. Never assume.** If a requirement, business rule,
+    name, value, file, design choice or scope is unclear or missing, stop and ask before writing
+    code. Don't fill gaps with guesses, placeholders or "reasonable defaults" unless the developer
+    has told you to. See §17.
+15. **Never install anything yourself.** If something you need isn't installed (an npm package,
+    a CLI, a system tool, a runtime version, a database extension), stop. Tell the developer what
+    it is, why it's needed and the exact install command, then wait for them to confirm it's
+    installed before continuing. See §17.
 
 ---
 
@@ -99,16 +107,18 @@ TypeScript everywhere, one pnpm monorepo.
 | SMS | Ghana provider (Arkesel, Hubtel or mNotify) behind an adapter | Fallback and one-time codes |
 | AI | Anthropic API (Claude) with tool use, via the official SDK | No AI framework; model IDs come from env vars |
 | Files | Supabase Storage | Photos, scanned documents, generated PDFs |
-| Hosting | API + worker on Railway/Render/Fly.io (EU region); web on Cloudflare Pages | |
+| Hosting | API (and later the worker) on Render (Docker, Frankfurt/EU); web on a Cloudflare Worker serving static files | Config: `render.yaml`, `apps/web/wrangler.jsonc`. Steps: `docs/runbooks/deploy.md` |
 | CI | GitHub Actions | Typecheck, lint, test on every PR |
 | Monitoring | Sentry (web, api, worker), uptime checks (Better Stack or UptimeRobot) | |
 | Tests | Vitest (unit/integration), Playwright (E2E) | |
 | Phone numbers | libphonenumber-js | Store E.164 (`+233XXXXXXXXX`) |
 | Excel/CSV import | SheetJS | |
 
-**Dependencies:** prefer what's already in the stack. Before adding a new runtime
-dependency, say why it's needed and what the alternative is. Never add a second library that
-does the same job as an existing one (e.g. a second date or validation library).
+**Dependencies:** prefer what's already in the stack. Never install packages or tools yourself
+(Golden rule 15). If something is needed, tell the developer what it is, why, what the
+alternative is, and the exact command (e.g. `pnpm add zod --filter @school-mgmt/shared`), then
+wait for confirmation that it's installed. Never suggest a second library that does the same job
+as an existing one (e.g. a second date or validation library).
 
 ---
 
@@ -461,14 +471,70 @@ at 360 px on a phone-sized viewport, offline behaviour is handled (if it's a sta
 
 ## 17. Working agreement for Claude Code
 
+### Clarify first, never assume
+
+- **Before starting any task, check you have everything you need.** If anything is unclear,
+  ambiguous or missing, ask clarifying questions first and wait for the answers before writing
+  or changing any code.
+- Things to check before starting: the exact goal and scope, which files/apps it touches,
+  business rules (fees, grading, roles, school processes), names and wording shown to users,
+  data shapes, edge cases, and how "done" will be judged.
+- **Never assume.** Don't invent requirements, values, names, rules or file contents. Don't
+  quietly pick a default. If you think there's a sensible option, suggest it as a question
+  ("Should X work like A or B? I'd suggest A because…") and wait.
+- Group your questions into one short numbered list so they're easy to answer.
+- If new questions come up partway through a task, stop at that point and ask before continuing.
+- If an instruction conflicts with this file or with the existing code, point out the conflict
+  and ask which to follow.
+
+### Missing tools or packages
+
+- **Never install anything yourself**: no `pnpm add`/`npm install`, no global CLIs, no `brew`,
+  `apt` or similar, no database extensions.
+- Before relying on a tool or package, check it's available (e.g. look in `package.json` or run
+  `<tool> --version`). If it's missing, stop and tell the developer:
+  1. what's missing,
+  2. why it's needed for this task,
+  3. the exact command to install it (and which workspace package it belongs to),
+  then wait for them to confirm it's installed before continuing.
+
+### Other rules
+
 - Do what's asked; keep changes scoped to the request and the current sprint.
 - **Git/GitHub:** see Golden rule 13. The developer handles all of it.
-- **Ask before:** adding a new dependency, changing the database schema in a way that drops or
-  renames data, changing a Golden rule, touching production, or changing sync rules or permissions.
-- **When a domain rule is unclear** (fees, grading, school process), ask instead of guessing, and
-  note the open question in your answer.
+- **Ask before:** changing the database schema in a way that drops or renames data, changing a
+  Golden rule, touching production, or changing sync rules or permissions.
 - If you notice a bug or risk outside the task, mention it briefly; don't fix it unasked.
 - Don't edit `CLAUDE.md` files unless asked; suggest changes instead when conventions evolve.
+  **The one exception** is updating sprint progress in §18, as described below.
+
+### Updating sprint progress (§18)
+
+Update the roadmap yourself, but **only when the current sprint is completely done**. Never mark a
+sprint done partway through, and never mark items done one at a time.
+
+A sprint is completely done only when **all** of these are true:
+1. every build item listed for that sprint is implemented,
+2. its "Done when" criteria are met,
+3. the definition of done in §15 holds for that work: `pnpm typecheck`, `pnpm lint` and
+   `pnpm test` all pass (run them and check the output; don't assume),
+4. nothing for that sprint is waiting on an open question.
+
+Some "Done when" criteria can only be confirmed by the developer, e.g. something deployed, tested
+on a real phone, confirmed by the school, or a real-world gate like the Phase 1 parallel run.
+For those, **ask the developer to confirm** before marking the sprint done. Don't assume they
+happened.
+
+When a sprint is completely done:
+- add ` ✅ Done` to the end of that sprint's bold title, e.g. `**Sprint 0: Toolkit and first deploy** ✅ Done`,
+- add it to the **Completed sprints** line,
+- move **Current sprint** to the next sprint (if the next sprint isn't written out in detail yet,
+  e.g. after Sprint 11, set it to `Phase 2: waiting for sprint plan` and ask the developer for it),
+- change nothing else in this file,
+- tell the developer in your reply that you updated the sprint progress, and which checks you ran.
+
+If you're not sure whether a sprint is completely done, don't update anything. List what's left or
+unclear and ask.
 
 ---
 
@@ -477,7 +543,9 @@ at 360 px on a phone-sized viewport, offline behaviour is handled (if it's a sta
 The work is split into phases and one-week-style sprints, but **sprints are numbered, not dated**.
 Do the current sprint's work; don't build later-sprint features early unless asked.
 
-**Current sprint: Sprint 0** ← the developer updates this line.
+**Current sprint: Sprint 0** ← Claude Code updates this line, only when a sprint is completely done (see §17).
+
+**Completed sprints:** none yet
 
 ### Phase 1: Money and records (Sprints 0–11)
 

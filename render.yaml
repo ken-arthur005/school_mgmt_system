@@ -1,15 +1,15 @@
-# Render Blueprint for the API. The web app is deployed on Cloudflare Pages
+# Render Blueprint for the API. The web app is deployed as a Cloudflare Worker
 # (see docs/runbooks/deploy.md). The worker is added here in Sprint 8.
 services:
   - type: web
     name: school-mgmt-api
     runtime: docker
     region: frankfurt
-    plan: starter
+    plan: free
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
     healthCheckPath: /health
-    autoDeploy: false
+    autoDeploy: true
     envVars:
       - key: APP_ENV
         sync: false

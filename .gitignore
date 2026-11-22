@@ -5,6 +5,7 @@ node_modules/
 dist/
 *.tsbuildinfo
 .turbo/
+.wrangler/
 
 # Env files (keep the examples)
 .env

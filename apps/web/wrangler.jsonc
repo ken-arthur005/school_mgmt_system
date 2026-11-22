@@ -1,0 +1,12 @@
+// Cloudflare Worker that serves the built staff app (static files only, no server code).
+// Deployed by Cloudflare Workers Builds; see docs/runbooks/deploy.md.
+{
+  // Must match the Worker's name in the Cloudflare dashboard.
+  "name": "sch-mgmt-system",
+  "compatibility_date": "2026-11-22",
+  "assets": {
+    "directory": "./dist",
+    // Unknown paths get index.html, so links into the app (e.g. /students/123) load correctly.
+    "not_found_handling": "single-page-application",
+  },
+}
