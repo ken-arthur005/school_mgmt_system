@@ -1,4 +1,4 @@
 {
   "extends": "@school-mgmt/config/tsconfig/node.json",
-  "include": ["src", "*.config.js"]
+  "include": ["src", "*.config.ts", "*.config.js"]
 }

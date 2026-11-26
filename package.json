@@ -13,7 +13,12 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:generate": "pnpm --filter @school-mgmt/db db:generate",
+    "db:migrate": "pnpm --filter @school-mgmt/db db:migrate",
+    "db:seed": "pnpm --filter @school-mgmt/db db:seed",
+    "db:reset": "pnpm --filter @school-mgmt/db db:reset",
+    "db:test:up": "docker compose up -d --wait"
   },
   "devDependencies": {
     "prettier": "3.10.1",

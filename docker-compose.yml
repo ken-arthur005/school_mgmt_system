@@ -1,0 +1,18 @@
+# Local throwaway Postgres for the database tests (packages/db). Not used by the app itself.
+# Keep the major version in step with the Supabase project and the CI service in ci.yml.
+services:
+  postgres-test:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: school_mgmt_test
+    ports:
+      - '54329:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d school_mgmt_test']
+      interval: 2s
+      timeout: 5s
+      retries: 20

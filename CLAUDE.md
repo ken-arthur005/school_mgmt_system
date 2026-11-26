@@ -160,7 +160,9 @@ If a folder doesn't exist yet, create it following this layout when the current 
 | `pnpm test:e2e` | Playwright tests (apps/web) |
 | `pnpm db:generate` | Drizzle: generate a migration from schema changes |
 | `pnpm db:migrate` | Apply migrations to the database in `DATABASE_URL` |
-| `pnpm db:seed` | Reset and seed a fake school (~900 students, KG1–JHS 3) |
+| `pnpm db:seed` | Wipe the data and seed a fake school (~900 students, Creche–JHS 3); refuses production |
+| `pnpm db:reset` | Drop our tables, apply every migration, then seed (the one-command rebuild); refuses production |
+| `pnpm db:test:up` | Start the local Docker Postgres the database tests use (`TEST_DATABASE_URL`) |
 
 After any code change, run `pnpm typecheck` and the relevant tests before saying it's done.
 
@@ -210,8 +212,8 @@ Parents
 | Term | Meaning |
 | --- | --- |
 | GES | Ghana Education Service |
-| Levels | Creche/Nursery (if used), **KG1, KG2**, **Basic 1–6** (B1–B6, primary), **JHS 1–3** (B7–B9) |
-| Class / stream | A class within a level for one academic year, e.g. "B4 A", "B4 B" |
+| Levels | **Creche**, **Nursery 1, Nursery 2**, **KG 1, KG 2**, **Basic 1–6** (B1–B6, primary), **JHS 1–3** (B7–B9) |
+| Class / stream | A class within a level for one academic year. Nursery 1 to Basic 6 have two streams, A and B ("Nursery 1A", "KG 2B", "Basic 4A"); Creche and each JHS level are a single class ("Creche", "JHS 2") |
 | Academic year | Runs roughly September to July, in **3 terms** |
 | Term | Has a start date, end date and mid-term break; fees are billed per term |
 | Class score / SBA | Continuous assessment (classwork, tests, projects) |
@@ -543,13 +545,13 @@ unclear and ask.
 The work is split into phases and one-week-style sprints, but **sprints are numbered, not dated**.
 Do the current sprint's work; don't build later-sprint features early unless asked.
 
-**Current sprint: Sprint 0** ← Claude Code updates this line, only when a sprint is completely done (see §17).
+**Current sprint: Sprint 2** ← Claude Code updates this line, only when a sprint is completely done (see §17).
 
-**Completed sprints:** none yet
+**Completed sprints:** Sprint 0, Sprint 1
 
 ### Phase 1: Money and records (Sprints 0–11)
 
-**Sprint 0: Toolkit and first deploy**
+**Sprint 0: Toolkit and first deploy** ✅ Done
 - Monorepo: pnpm workspace + Turborepo with `apps/web`, `apps/api`, `apps/worker`,
   `packages/shared`, `packages/db`, `packages/config`.
 - Strict TypeScript, ESLint, Prettier shared across packages.
@@ -557,11 +559,12 @@ Do the current sprint's work; don't build later-sprint features early unless ask
 - Deploy API and web (from the developer's pipeline).
 - *Done when:* the deployed web page shows "API is healthy" from the deployed API.
 
-**Sprint 1: Data model**
+**Sprint 1: Data model** ✅ Done
 - Supabase (dev) + Drizzle connected.
 - Tables: schools, academic_years, terms, levels, classes, subjects, class_subjects, students,
   guardians, student_guardians, staff, users, user_roles, staff_assignments, enrolments, audit_log.
-- Seed script: a fake school of ~900 students across KG1–JHS 3, with guardians and siblings.
+- Audit log triggers on the student-record tables (the history screen comes in Sprint 9).
+- Seed script: a fake school of ~900 students across Creche–JHS 3, with guardians and siblings.
 - Ten practice queries saved as tests (e.g. all JHS 2 students with their main guardian's phone).
 - *Done when:* the seed runs from scratch in one command and all ten queries return the right rows.
 
@@ -624,7 +627,8 @@ Do the current sprint's work; don't build later-sprint features early unless ask
 - Scheduled, polite fee reminders (wording approved by the bursar).
 - Head's dashboard: money collected today and this term, money owed, enrolment (attendance tile
   arrives in Phase 2).
-- Audit log via Postgres triggers + a "history" view on student and payment screens.
+- A "history" view on student and payment screens, from the audit log (triggers exist since Sprint 1;
+  new tables get them when they're added).
 - *Done when:* a scheduled reminder reaches only guardians with a balance, and a phone-number change
   appears in that student's history.
 
@@ -665,7 +669,6 @@ security per `school_id`, onboarding, billing).
 
 ### Open questions (ask the developer before assuming)
 
-- Number of streams per level (e.g. B4 A / B4 B)?
 - Exact report card layout, score weighting and grading scale used by the school?
 - Is feeding paid termly or daily? Other regular charges?
 - Does the school run buses?
