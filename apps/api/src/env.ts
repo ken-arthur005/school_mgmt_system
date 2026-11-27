@@ -16,6 +16,12 @@ const envSchema = z.object({
         .filter((origin) => origin.length > 0),
     )
     .pipe(z.array(z.url()).min(1)),
+  // Server-only secret: the Postgres connection string.
+  DATABASE_URL: z.url(),
+  // e.g. https://abcd1234.supabase.co. Login tokens are checked against its public keys (JWKS).
+  SUPABASE_URL: z
+    .url()
+    .transform((value) => value.replace(/\/+$/, '')),
 });
 
 export type Env = z.infer<typeof envSchema>;

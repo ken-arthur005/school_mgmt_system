@@ -503,6 +503,8 @@ at 360 px on a phone-sized viewport, offline behaviour is handled (if it's a sta
 ### Other rules
 
 - Do what's asked; keep changes scoped to the request and the current sprint.
+- **Project notes:** read `docs/notes.md` before starting work. Add to it as decisions are made
+  (decisions, non-obvious conventions, things later sprints need), not only at sprint end.
 - **Git/GitHub:** see Golden rule 13. The developer handles all of it.
 - **Ask before:** changing the database schema in a way that drops or renames data, changing a
   Golden rule, touching production, or changing sync rules or permissions.

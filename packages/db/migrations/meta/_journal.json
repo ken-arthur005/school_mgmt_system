@@ -15,6 +15,13 @@
       "when": 1795734812673,
       "tag": "0001_triggers_and_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795804522161,
+      "tag": "0002_require_audit_actor",
+      "breakpoints": true
     }
   ]
 }

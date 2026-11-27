@@ -213,3 +213,33 @@ describe('Supabase Data API lockout', () => {
     }
   });
 });
+
+describe('no actor, no change', () => {
+  test('an audited change without app.user_id is refused', async () => {
+    await inRollback(
+      db,
+      async (tx) => {
+        const { guardian } = await mainGuardianOf(tx, 'Ama', 'Asamoah');
+        const change = tx
+          .update(guardians)
+          .set({ occupation: 'Trader' })
+          .where(eq(guardians.id, guardian.id));
+        // insufficient_privilege, raised by audit_row_change().
+        await expect(change).rejects.toMatchObject({ cause: { code: '42501' } });
+      },
+      { actor: null },
+    );
+  });
+
+  test('a table without an audit trigger is not affected', async () => {
+    await inRollback(
+      db,
+      async (tx) => {
+        const [subject] = await tx.select().from(subjects).limit(1);
+        if (subject === undefined) throw new Error('No subjects');
+        await tx.update(subjects).set({ name: 'Renamed' }).where(eq(subjects.id, subject.id));
+      },
+      { actor: null },
+    );
+  });
+});

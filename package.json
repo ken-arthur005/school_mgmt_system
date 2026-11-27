@@ -18,7 +18,8 @@
     "db:migrate": "pnpm --filter @school-mgmt/db db:migrate",
     "db:seed": "pnpm --filter @school-mgmt/db db:seed",
     "db:reset": "pnpm --filter @school-mgmt/db db:reset",
-    "db:test:up": "docker compose up -d --wait"
+    "db:test:up": "docker compose up -d --wait",
+    "auth:dev-logins": "pnpm --filter @school-mgmt/api auth:dev-logins"
   },
   "devDependencies": {
     "prettier": "3.10.1",

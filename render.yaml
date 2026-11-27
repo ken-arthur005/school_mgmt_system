@@ -19,3 +19,8 @@ services:
         value: info
       - key: HOST
         value: 0.0.0.0
+      # Server-only secrets, set in the Render dashboard (Sprint 2).
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false

@@ -6,6 +6,7 @@ import {
   countEnrolmentsByLevel,
   findSiblings,
   getClassList,
+  getCurrentAcademicYear,
   getTermForDate,
   listClassTeachers,
   listFormTeachers,
@@ -250,5 +251,22 @@ describe('10. term for a date', () => {
 
   test.each(['2026-12-25', '2026-08-15'])('%s is in the holidays', async (date) => {
     expect(await getTermForDate(db, { schoolId, date })).toBeNull();
+  });
+});
+
+describe('getCurrentAcademicYear', () => {
+  test.each([
+    { date: '2026-11-27', expected: '2026/2027' },
+    { date: '2026-09-07', expected: '2026/2027' },
+    // Holidays between years: last year's classes stay current.
+    { date: '2026-08-15', expected: '2025/2026' },
+    { date: '2026-09-06', expected: '2025/2026' },
+    { date: '2025-09-08', expected: '2025/2026' },
+  ])('$date → $expected', async ({ date, expected }) => {
+    expect(await getCurrentAcademicYear(db, { schoolId, date })).toMatchObject({ name: expected });
+  });
+
+  test('null before the first year starts', async () => {
+    expect(await getCurrentAcademicYear(db, { schoolId, date: '2020-01-01' })).toBeNull();
   });
 });

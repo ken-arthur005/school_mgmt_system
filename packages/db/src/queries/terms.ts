@@ -1,4 +1,4 @@
-import { and, eq, gte, isNull, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
 import type { Db } from '../client';
 import { academicYears, terms } from '../schema';
 
@@ -28,6 +28,28 @@ export async function getTermForDate(db: Db, params: { schoolId: string; date: s
         isNull(academicYears.archivedAt),
       ),
     )
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+/**
+ * The school's current academic year: the latest one that has started by `date` (a school-day
+ * date, YYYY-MM-DD in Africa/Accra). During the holiday between two years this is still last
+ * year, so teachers keep seeing their classes until the new year begins. Null before the first
+ * year starts.
+ */
+export async function getCurrentAcademicYear(db: Db, params: { schoolId: string; date: string }) {
+  const rows = await db
+    .select({ id: academicYears.id, name: academicYears.name })
+    .from(academicYears)
+    .where(
+      and(
+        eq(academicYears.schoolId, params.schoolId),
+        lte(academicYears.startsOn, params.date),
+        isNull(academicYears.archivedAt),
+      ),
+    )
+    .orderBy(desc(academicYears.startsOn))
     .limit(1);
   return rows[0] ?? null;
 }
