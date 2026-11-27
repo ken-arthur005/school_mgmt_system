@@ -1,4 +1,4 @@
-import type { GuardianDetail, GuardianListResponse } from '@school-mgmt/shared';
+import type { ErrorResponse, GuardianDetail, GuardianListResponse } from '@school-mgmt/shared';
 import { sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { bearer, lookup, signToken, startTestApp, type TestContext } from '../../test/helpers';
@@ -26,13 +26,32 @@ afterAll(async () => {
 });
 
 async function list(token: string, query = ''): Promise<GuardianListResponse> {
-  const res = await ctx.app.inject({ method: 'GET', url: `/guardians${query}`, headers: bearer(token) });
+  const res = await ctx.app.inject({
+    method: 'GET',
+    url: `/guardians${query}`,
+    headers: bearer(token),
+  });
+  expect(res.statusCode).toBe(200);
+  return res.json();
+}
+
+async function search(token: string, body: Record<string, unknown>): Promise<GuardianListResponse> {
+  const res = await ctx.app.inject({
+    method: 'POST',
+    url: '/guardians/search',
+    headers: bearer(token),
+    payload: body,
+  });
   expect(res.statusCode).toBe(200);
   return res.json();
 }
 
 async function detail(token: string, id: string): Promise<GuardianDetail> {
-  const res = await ctx.app.inject({ method: 'GET', url: `/guardians/${id}`, headers: bearer(token) });
+  const res = await ctx.app.inject({
+    method: 'GET',
+    url: `/guardians/${id}`,
+    headers: bearer(token),
+  });
   expect(res.statusCode).toBe(200);
   return res.json();
 }
@@ -43,22 +62,25 @@ describe('GET /guardians', () => {
   test('a class teacher sees the parents of their class only', async () => {
     const page = await list(kofi, '?pageSize=100');
     expect(names(page)).toEqual(expect.arrayContaining(['Akosua Asamoah', 'Kwabena Asamoah']));
-    // The Kuffour children are in JHS 2 and Basic 1A.
-    expect(names(page)).not.toContain('Efua Kuffour');
+    // Akua Dapaah is in JHS 2.
+    expect(names(page)).not.toContain('Efua Dapaah');
   });
 
   test('a housemaster sees boarders’ parents only', async () => {
-    const page = await list(housemaster, '?q=Asamoah');
+    const page = await search(housemaster, { q: 'Asamoah' });
     expect(page.total).toBe(0);
   });
 
   test('search by phone in any format', async () => {
-    expect(names(await list(head, '?q=%2B233%2024%20400%200102'))).toEqual(['Akosua Asamoah']);
-    expect(names(await list(head, '?q=233244000102'))).toEqual(['Akosua Asamoah']);
+    expect(names(await search(head, { q: '+233 24 400 0102' }))).toEqual(['Akosua Asamoah']);
+    expect(names(await search(head, { q: '233244000102' }))).toEqual(['Akosua Asamoah']);
   });
 
   test('search by name', async () => {
-    expect(names(await list(head, '?q=asamoah')).sort()).toEqual(['Akosua Asamoah', 'Kwabena Asamoah']);
+    expect(names(await search(head, { q: 'asamoah' })).sort()).toEqual([
+      'Akosua Asamoah',
+      'Kwabena Asamoah',
+    ]);
   });
 });
 
@@ -74,8 +96,12 @@ describe('GET /guardians/:id', () => {
   });
 
   test('a class teacher gets 403 for another class’s parent', async () => {
-    const efua = await find.guardian('Efua', 'Kuffour');
-    const res = await ctx.app.inject({ method: 'GET', url: `/guardians/${efua}`, headers: bearer(kofi) });
+    const efua = await find.guardian('Efua', 'Dapaah');
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: `/guardians/${efua}`,
+      headers: bearer(kofi),
+    });
     expect(res.statusCode).toBe(403);
   });
 });
@@ -107,11 +133,11 @@ describe('PATCH /guardians/:id', () => {
       payload: { surname: 'Mensah', occupation: 'Nurse' },
     });
     expect(res.statusCode).toBe(403);
-    expect(res.json().error.message).toMatch(/only change contact details/);
+    expect(res.json<ErrorResponse>().error.message).toMatch(/only change contact details/);
   });
 
   test('a class teacher may not edit another class’s parent', async () => {
-    const efua = await find.guardian('Efua', 'Kuffour');
+    const efua = await find.guardian('Efua', 'Dapaah');
     const res = await ctx.app.inject({
       method: 'PATCH',
       url: `/guardians/${efua}`,

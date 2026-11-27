@@ -52,7 +52,7 @@ afterAll(async () => {
 
 interface Endpoint {
   name: string;
-  method: 'GET' | 'PATCH';
+  method: 'GET' | 'POST' | 'PATCH';
   url: () => string;
   body?: Record<string, unknown>;
   allowed: readonly Who[];
@@ -66,6 +66,13 @@ const ENDPOINTS: readonly Endpoint[] = [
     name: 'GET /students',
     method: 'GET',
     url: () => '/students',
+    allowed: [...SCHOOL_WIDE_READERS, 'class_teacher', 'subject_teacher', 'housemaster'],
+  },
+  {
+    name: 'POST /students/search',
+    method: 'POST',
+    url: () => '/students/search',
+    body: { q: 'Asamoah' },
     allowed: [...SCHOOL_WIDE_READERS, 'class_teacher', 'subject_teacher', 'housemaster'],
   },
   {
@@ -85,6 +92,13 @@ const ENDPOINTS: readonly Endpoint[] = [
     name: 'GET /guardians',
     method: 'GET',
     url: () => '/guardians',
+    allowed: [...SCHOOL_WIDE_READERS, 'class_teacher', 'housemaster'],
+  },
+  {
+    name: 'POST /guardians/search',
+    method: 'POST',
+    url: () => '/guardians/search',
+    body: { q: 'Asamoah' },
     allowed: [...SCHOOL_WIDE_READERS, 'class_teacher', 'housemaster'],
   },
   {
@@ -148,6 +162,24 @@ describe('bad input → 400 with the standard error shape', () => {
       body: { admissionNumber: 'X' },
     },
     { name: 'guardian page 0', method: 'GET', url: () => '/guardians?page=0' },
+    {
+      name: 'blank student search',
+      method: 'POST',
+      url: () => '/students/search',
+      body: { q: '  ' },
+    },
+    {
+      name: 'student search page as text',
+      method: 'POST',
+      url: () => '/students/search',
+      body: { q: 'Kofi', page: '2' },
+    },
+    {
+      name: 'blank guardian search',
+      method: 'POST',
+      url: () => '/guardians/search',
+      body: { q: '' },
+    },
     { name: 'guardian id not a uuid', method: 'GET', url: () => '/guardians/abc' },
     {
       name: 'bad guardian phone',

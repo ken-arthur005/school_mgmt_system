@@ -6,6 +6,7 @@ import {
   studentEditSchema,
   studentListQuerySchema,
   studentListResponseSchema,
+  studentSearchSchema,
 } from '@school-mgmt/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { authOf } from '../../plugins/auth';
@@ -29,6 +30,19 @@ export const studentRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) =>
       },
     },
     (request) => service.listStudents(db, authOf(request), request.query),
+  );
+
+  // POST so names and phone numbers travel in the body, never in the URL (which gets logged).
+  app.post(
+    '/students/search',
+    {
+      config: { permission: 'students.read' },
+      schema: {
+        body: studentSearchSchema,
+        response: { 200: studentListResponseSchema, ...errors },
+      },
+    },
+    (request) => service.searchStudents(db, authOf(request), request.body),
   );
 
   app.get(

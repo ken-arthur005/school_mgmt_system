@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { guardianEditSchema, guardianListQuerySchema } from './guardians';
-import { studentEditSchema, studentListQuerySchema } from './students';
+import { guardianEditSchema, guardianListQuerySchema, guardianSearchSchema } from './guardians';
+import { studentEditSchema, studentListQuerySchema, studentSearchSchema } from './students';
 
 describe('studentListQuerySchema', () => {
   test('defaults to active students, first page of 50', () => {
@@ -12,9 +12,11 @@ describe('studentListQuerySchema', () => {
     });
   });
 
+  test('search text is not accepted in the URL', () => {
+    expect(studentListQuerySchema.parse({ q: 'Kofi' })).not.toHaveProperty('q');
+  });
+
   test.each([
-    { input: { q: '  ' }, expected: { q: undefined } },
-    { input: { q: ' Kofi ' }, expected: { q: 'Kofi' } },
     { input: { page: '3', pageSize: '20' }, expected: { page: 3, pageSize: 20 } },
     { input: { includeArchived: 'true' }, expected: { includeArchived: true } },
     { input: { status: 'any' }, expected: { status: 'any' } },
@@ -37,7 +39,10 @@ describe('studentEditSchema', () => {
   test.each([
     { input: { surname: ' Mensah ' }, expected: { surname: 'Mensah' } },
     { input: { otherNames: '' }, expected: { otherNames: null } },
-    { input: { ghanaCardNumber: 'gha-123456789-0' }, expected: { ghanaCardNumber: 'GHA-123456789-0' } },
+    {
+      input: { ghanaCardNumber: 'gha-123456789-0' },
+      expected: { ghanaCardNumber: 'GHA-123456789-0' },
+    },
     { input: { religion: null }, expected: { religion: null } },
     { input: { dateOfBirth: '2015-03-02' }, expected: { dateOfBirth: '2015-03-02' } },
   ])('accepts $input', ({ input, expected }) => {
@@ -82,5 +87,35 @@ describe('guardianEditSchema', () => {
 describe('guardianListQuerySchema', () => {
   test('defaults', () => {
     expect(guardianListQuerySchema.parse({})).toEqual({ page: 1, pageSize: 50 });
+  });
+});
+
+describe.each([
+  { name: 'studentSearchSchema', schema: studentSearchSchema },
+  { name: 'guardianSearchSchema', schema: guardianSearchSchema },
+])('$name', ({ schema }) => {
+  test('trims the search text and applies defaults', () => {
+    expect(schema.parse({ q: ' Kofi ' })).toMatchObject({ q: 'Kofi', page: 1, pageSize: 50 });
+  });
+
+  test.each([
+    { name: 'missing text', input: {} },
+    { name: 'blank text', input: { q: '   ' } },
+    { name: 'text too long', input: { q: 'x'.repeat(101) } },
+    { name: 'page as text', input: { q: 'Kofi', page: '2' } },
+    { name: 'page size too big', input: { q: 'Kofi', pageSize: 101 } },
+  ])('rejects $name', ({ input }) => {
+    expect(schema.safeParse(input).success).toBe(false);
+  });
+});
+
+describe('studentSearchSchema filters', () => {
+  test('includeArchived is a real boolean in the body', () => {
+    expect(studentSearchSchema.parse({ q: 'Kofi', includeArchived: true })).toMatchObject({
+      includeArchived: true,
+    });
+    expect(studentSearchSchema.safeParse({ q: 'Kofi', includeArchived: 'true' }).success).toBe(
+      false,
+    );
   });
 });

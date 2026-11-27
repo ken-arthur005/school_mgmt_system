@@ -8,6 +8,9 @@ reasoning lives in `docs/decisions/`. Update this file as decisions happen, not 
 
 - **Admission number format:** not decided. The seed uses a temporary `YYYY/NNNN`.
 - **2FA** for `owner`, `head`, `bursar`, `admin`, `system_admin`: deferred to Sprint 10.
+- **Phone sign-in:** Sprint 8, via Supabase's Send SMS hook → our SMS adapter (see Sprint 2).
+- **Render:** the API needs `DATABASE_URL` and `SUPABASE_URL` set in the dashboard before the
+  next deploy (both are in `render.yaml` as `sync: false`).
 - **Device id:** `app.device_id` stays empty until the `devices` table arrives (Sprint 4).
 - **Boarders** are `enrolments.is_boarder` in the current year (the seed sets it for JHS 3).
   Housemasters see these students. Houses and beds come in Phase 4.
@@ -49,8 +52,13 @@ reasoning lives in `docs/decisions/`. Update this file as decisions happen, not 
 
 Decisions from the planning discussion:
 
-- **Logins:** email or phone + password (Supabase Auth). Accounts are created by an admin, already
-  confirmed (no SMS needed). In dev a script creates one login per role; it refuses production.
+- **Logins: email + password now; phone + password in Sprint 8.** Supabase only enables phone
+  sign-in once an SMS provider is configured, and its built-in ones (Twilio, MessageBird, Vonage,
+  Textlocal) aren't our Ghana providers. In Sprint 8, point Supabase's "Send SMS" hook at our own
+  SMS adapter, then turn on Auth → Providers → Phone in the dashboard (the Supabase MCP can't
+  change auth settings). Every dev login already has a confirmed phone number, so nothing else
+  changes. Accounts are created by an admin, already confirmed. In dev,
+  `pnpm auth:dev-logins` creates them; it refuses production.
 - **Token check:** verified locally against Supabase's JWKS with `jose`. Tests sign their own
   tokens with a local key; CI never calls Supabase.
 - **Out of scope = 403, not 404.** Shows the record exists, but the user can't see it. Money
@@ -65,19 +73,21 @@ Decisions from the planning discussion:
   occupation…). Not admission number, date of birth, status, class or names.
 - **Who can do what:**
 
-  | Role | Students | Guardians | Medical notes | Money |
-  | --- | --- | --- | --- | --- |
-  | owner, head | read + edit all | read + edit all | read | yes |
-  | admin | read + edit all | read + edit all | read | no |
-  | bursar | read all | read all | no | yes |
-  | class_teacher | read form class | read + edit contact details of form class's guardians | form class | no |
-  | subject_teacher | read taught classes | no | no | no |
-  | housemaster | read boarders | read boarders' guardians | boarders | no |
-  | system_admin | no | no | no | no |
+  | Role            | Students            | Guardians                                             | Medical notes | Money |
+  | --------------- | ------------------- | ----------------------------------------------------- | ------------- | ----- |
+  | owner, head     | read + edit all     | read + edit all                                       | read          | yes   |
+  | admin           | read + edit all     | read + edit all                                       | read          | no    |
+  | bursar          | read all            | read all                                              | no            | yes   |
+  | class_teacher   | read form class     | read + edit contact details of form class's guardians | form class    | no    |
+  | subject_teacher | read taught classes | no                                                    | no            | no    |
+  | housemaster     | read boarders       | read boarders' guardians                              | boarders      | no    |
+  | system_admin    | no                  | no                                                    | no            | no    |
 
 - **Money actions** are in the permissions map already, even though no money routes exist yet.
 - **Search:** case-insensitive name and admission number, plus guardian phone in any common Ghana
-  format. No `pg_trgm`.
+  format. No `pg_trgm`. Search is `POST /students/search` and `POST /guardians/search` with the
+  text in the body: names and phones must never be in a URL, because URLs are logged (§9).
+  `GET /students` and `GET /guardians` take only ids and fixed values (status, class, page).
 - **Lists** show active students by default, with a filter for the rest.
 - **Edits:** last write wins; the old value is in `audit_log`.
 - **No actor, no write:** the database refuses audited changes when `app.user_id` isn't set.
@@ -115,3 +125,12 @@ How it works (things later sprints build on):
 - **Deploy:** the API now needs `DATABASE_URL` and `SUPABASE_URL` on Render. The Docker image
   bundles our workspace packages into `dist`, so any npm package they import (drizzle-orm,
   postgres, libphonenumber-js, zod) must also be a direct dependency of `apps/api`.
+
+Sprint 2 wrap-up:
+
+- Verified end to end against Supabase dev: Kofi Darkwa signed in with email + password, read
+  his class (Basic 4A, 35 students), could not find his own daughter in KG 2A, got 403 on an
+  office-only edit; the head saw all 917; no token gave 401. Server logs held ids only.
+- Migration `0002_require_audit_actor` is applied to Supabase dev.
+- No money routes exist yet: "403 on money" is guaranteed by the permissions map (tested for
+  every role × action) and will be covered route by route when Sprints 6–7 add them.

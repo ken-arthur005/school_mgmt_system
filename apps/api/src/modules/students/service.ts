@@ -4,6 +4,7 @@ import {
   type StudentEdit,
   type StudentListQuery,
   type StudentListResponse,
+  type StudentSearch,
   tryNormalizeGhanaPhone,
 } from '@school-mgmt/shared';
 import { type AuthUser, studentReach } from '../../access';
@@ -12,22 +13,31 @@ import * as repo from './repo';
 
 const NOT_YOUR_STUDENT = 'This student is not in one of your classes.';
 
-export async function listStudents(
+async function findStudents(
   db: Db,
   user: AuthUser,
   query: StudentListQuery,
+  search: repo.SearchText | null,
 ): Promise<StudentListResponse> {
   const reach = studentReach(user, 'students.read');
   if (reach === null) throw forbidden();
-  const phone = query.q === undefined ? null : tryNormalizeGhanaPhone(query.q);
   const { items, total } = await repo.listStudents(db, {
     schoolId: user.schoolId,
     academicYearId: user.academicYearId,
     reach,
     query,
-    phone,
+    search,
   });
   return { items, total, page: query.page, pageSize: query.pageSize };
+}
+
+export function listStudents(db: Db, user: AuthUser, query: StudentListQuery) {
+  return findStudents(db, user, query, null);
+}
+
+export function searchStudents(db: Db, user: AuthUser, body: StudentSearch) {
+  const { q, ...query } = body;
+  return findStudents(db, user, query, { text: q, phone: tryNormalizeGhanaPhone(q) });
 }
 
 /** 404 when there's no such student in this school; 403 when it exists but is out of reach. */

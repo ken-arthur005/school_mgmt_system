@@ -5,29 +5,40 @@ import {
   type GuardianEdit,
   type GuardianListQuery,
   type GuardianListResponse,
+  type GuardianSearch,
   tryNormalizeGhanaPhone,
 } from '@school-mgmt/shared';
 import { type AuthUser, studentReach } from '../../access';
 import { forbidden, notFound } from '../../plugins/errors';
+import type { SearchText } from '../students/repo';
 import * as repo from './repo';
 
 const CONTACT_FIELDS: ReadonlySet<string> = new Set(GUARDIAN_CONTACT_FIELDS);
 
-export async function listGuardians(
+async function findGuardians(
   db: Db,
   user: AuthUser,
   query: GuardianListQuery,
+  search: SearchText | null,
 ): Promise<GuardianListResponse> {
   const reach = studentReach(user, 'guardians.read');
   if (reach === null) throw forbidden();
-  const phone = query.q === undefined ? null : tryNormalizeGhanaPhone(query.q);
   const { items, total } = await repo.listGuardians(db, {
     schoolId: user.schoolId,
     reach,
     query,
-    phone,
+    search,
   });
   return { items, total, page: query.page, pageSize: query.pageSize };
+}
+
+export function listGuardians(db: Db, user: AuthUser, query: GuardianListQuery) {
+  return findGuardians(db, user, query, null);
+}
+
+export function searchGuardians(db: Db, user: AuthUser, body: GuardianSearch) {
+  const { q, ...query } = body;
+  return findGuardians(db, user, query, { text: q, phone: tryNormalizeGhanaPhone(q) });
 }
 
 /** 404 when there's no such guardian in this school; 403 when out of reach. */
@@ -86,7 +97,9 @@ export async function editGuardian(
       throw forbidden('This parent or guardian is not linked to one of your classes.');
     }
     if (!contactOnly) {
-      throw forbidden('You can only change contact details. Please ask the office to change names.');
+      throw forbidden(
+        'You can only change contact details. Please ask the office to change names.',
+      );
     }
   }
 

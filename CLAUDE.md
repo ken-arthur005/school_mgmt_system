@@ -547,9 +547,9 @@ unclear and ask.
 The work is split into phases and one-week-style sprints, but **sprints are numbered, not dated**.
 Do the current sprint's work; don't build later-sprint features early unless asked.
 
-**Current sprint: Sprint 2** ← Claude Code updates this line, only when a sprint is completely done (see §17).
+**Current sprint: Sprint 3** ← Claude Code updates this line, only when a sprint is completely done (see §17).
 
-**Completed sprints:** Sprint 0, Sprint 1
+**Completed sprints:** Sprint 0, Sprint 1, Sprint 2
 
 ### Phase 1: Money and records (Sprints 0–11)
 
@@ -570,7 +570,7 @@ Do the current sprint's work; don't build later-sprint features early unless ask
 - Ten practice queries saved as tests (e.g. all JHS 2 students with their main guardian's phone).
 - *Done when:* the seed runs from scratch in one command and all ten queries return the right rows.
 
-**Sprint 2: Secure API**
+**Sprint 2: Secure API** ✅ Done
 - Supabase Auth for staff (phone or email + password).
 - Roles/permissions map in `packages/shared`; Fastify auth + permission hooks on every route.
 - Endpoints: list, search, view, edit students and guardians, with zod validation.

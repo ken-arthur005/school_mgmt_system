@@ -14,18 +14,27 @@ export type ErrorResponse = z.infer<typeof errorResponseSchema>;
 export const idParamsSchema = z.object({ id: z.uuid() });
 export type IdParams = z.infer<typeof idParamsSchema>;
 
+/** Paging in a query string (values arrive as text). */
 export const paginationQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(50),
 });
 
-/** Free-text search box. Blank means "no search". */
-export const searchTermSchema = z
+/** Paging in a JSON body. */
+export const paginationBodySchema = z.object({
+  page: z.number().int().min(1).default(1),
+  pageSize: z.number().int().min(1).max(100).default(50),
+});
+
+/**
+ * What someone typed in a search box. It can be a name or phone number, so it travels in a
+ * request body, never in a URL (URLs end up in logs; CLAUDE.md §9).
+ */
+export const searchTextSchema = z
   .string()
   .trim()
-  .max(100)
-  .transform((value) => (value === '' ? undefined : value))
-  .optional();
+  .min(1, 'Type a name or number to search for.')
+  .max(100, 'This is too long.');
 
 /** A required person's name: trimmed, not blank. */
 export const personNameSchema = z

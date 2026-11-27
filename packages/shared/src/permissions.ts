@@ -47,7 +47,12 @@ export const PERMISSIONS: Readonly<Record<StaffRole, readonly Action[]>> = {
   head: [...STUDENT_RECORDS, ...MONEY],
   admin: [...STUDENT_RECORDS],
   bursar: ['students.read', 'guardians.read', ...MONEY],
-  class_teacher: ['students.read', 'guardians.read', 'guardians.edit_contact', 'medical_notes.read'],
+  class_teacher: [
+    'students.read',
+    'guardians.read',
+    'guardians.edit_contact',
+    'medical_notes.read',
+  ],
   subject_teacher: ['students.read'],
   housemaster: ['students.read', 'guardians.read', 'medical_notes.read'],
   // Settings and user management arrive with the setup screens (Sprint 5).

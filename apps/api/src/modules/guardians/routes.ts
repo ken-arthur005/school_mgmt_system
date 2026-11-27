@@ -5,6 +5,7 @@ import {
   guardianEditSchema,
   guardianListQuerySchema,
   guardianListResponseSchema,
+  guardianSearchSchema,
   idParamsSchema,
 } from '@school-mgmt/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
@@ -29,6 +30,19 @@ export const guardianRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) =
       },
     },
     (request) => service.listGuardians(db, authOf(request), request.query),
+  );
+
+  // POST so names and phone numbers travel in the body, never in the URL (which gets logged).
+  app.post(
+    '/guardians/search',
+    {
+      config: { permission: 'guardians.read' },
+      schema: {
+        body: guardianSearchSchema,
+        response: { 200: guardianListResponseSchema, ...errors },
+      },
+    },
+    (request) => service.searchGuardians(db, authOf(request), request.body),
   );
 
   app.get(

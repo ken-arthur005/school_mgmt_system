@@ -19,13 +19,15 @@ export const testEnv = loadEnv({
   SUPABASE_URL: TEST_SUPABASE_URL,
 });
 
+type SigningKey = Awaited<ReturnType<typeof generateKeyPair>>['privateKey'];
+
 const { publicKey, privateKey } = await generateKeyPair('ES256');
 const publicJwk = { ...(await exportJWK(publicKey)), kid: KEY_ID, alg: 'ES256' };
 
 /** A token like Supabase's. `sub` is the auth user id, which the test setup made equal to users.id. */
 export async function signToken(
   sub: string,
-  overrides: { issuer?: string; audience?: string; expiresAt?: Date; key?: CryptoKey } = {},
+  overrides: { issuer?: string; audience?: string; expiresAt?: Date; key?: SigningKey } = {},
 ): Promise<string> {
   const issuedAt = Math.floor(TEST_NOW.getTime() / 1000);
   const expiresAt = overrides.expiresAt ?? new Date(TEST_NOW.getTime() + 60 * 60 * 1000);

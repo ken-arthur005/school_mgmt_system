@@ -88,10 +88,7 @@ try {
         .update(schema.users)
         .set({ authUserId: null })
         .where(and(eq(schema.users.authUserId, authUserId), ne(schema.users.id, login.userId)));
-      await tx
-        .update(schema.users)
-        .set({ authUserId })
-        .where(eq(schema.users.id, login.userId));
+      await tx.update(schema.users).set({ authUserId }).where(eq(schema.users.id, login.userId));
     });
     rows.push({ roles: login.roles, email: login.email, phone: login.phone });
   }

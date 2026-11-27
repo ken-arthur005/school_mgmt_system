@@ -1,6 +1,18 @@
 import { type Db, schema, type Tx } from '@school-mgmt/db';
 import type { StudentEdit, StudentListQuery } from '@school-mgmt/shared';
-import { and, asc, count, eq, exists, ilike, inArray, isNull, or, type SQL, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  eq,
+  exists,
+  ilike,
+  inArray,
+  isNull,
+  or,
+  type SQL,
+  sql,
+} from 'drizzle-orm';
 import type { StudentReach } from '../../access';
 
 const { classes, enrolments, guardians, studentGuardians, studentMedicalNotes, students } = schema;
@@ -62,7 +74,13 @@ function thisYearsEnrolment(academicYearId: string | null): SQL {
       )}`;
 }
 
-function searchCondition(term: string, phone: string | null): SQL | undefined {
+/** What someone typed in a search box, and the same text as E.164 if it is a phone number. */
+export interface SearchText {
+  text: string;
+  phone: string | null;
+}
+
+function searchCondition({ text, phone }: SearchText): SQL | undefined {
   if (phone !== null) {
     return exists(
       sql`(select 1 from ${studentGuardians} inner join ${guardians} on ${eq(
@@ -81,8 +99,13 @@ function searchCondition(term: string, phone: string | null): SQL | undefined {
     );
   }
   return or(
-    nameMatches(term, sql`${students.firstName}`, sql`${students.otherNames}`, sql`${students.surname}`),
-    ilike(students.admissionNumber, escapeLike(term)),
+    nameMatches(
+      text,
+      sql`${students.firstName}`,
+      sql`${students.otherNames}`,
+      sql`${students.surname}`,
+    ),
+    ilike(students.admissionNumber, escapeLike(text)),
   );
 }
 
@@ -92,9 +115,9 @@ export async function listStudents(
     schoolId: string;
     academicYearId: string | null;
     reach: StudentReach;
+    /** Filters and paging (a search body has the same ones). */
     query: StudentListQuery;
-    /** The search term as E.164 when it is a phone number. */
-    phone: string | null;
+    search: SearchText | null;
   },
 ) {
   const { query } = params;
@@ -111,7 +134,7 @@ export async function listStudents(
             isNull(enrolments.archivedAt),
           )})`,
         ),
-    query.q === undefined ? undefined : searchCondition(query.q, params.phone),
+    params.search === null ? undefined : searchCondition(params.search),
     studentInReach(params.reach, students.id),
   );
 
@@ -208,7 +231,11 @@ export async function listGuardianLinks(db: Db, params: { schoolId: string; stud
         isNull(guardians.archivedAt),
       ),
     )
-    .orderBy(sql`${studentGuardians.isMainContact} desc`, asc(guardians.surname), asc(guardians.firstName));
+    .orderBy(
+      sql`${studentGuardians.isMainContact} desc`,
+      asc(guardians.surname),
+      asc(guardians.firstName),
+    );
 }
 
 export async function listMedicalNotes(db: Db, params: { schoolId: string; studentId: string }) {

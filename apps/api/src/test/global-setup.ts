@@ -1,9 +1,5 @@
 import { withActor } from '@school-mgmt/db';
-import {
-  connectTestDb,
-  ensureTestDatabase,
-  rebuildTestDatabase,
-} from '@school-mgmt/db/testing';
+import { connectTestDb, ensureTestDatabase, rebuildTestDatabase } from '@school-mgmt/db/testing';
 import { sql } from 'drizzle-orm';
 import { API_TEST_DATABASE } from './constants';
 

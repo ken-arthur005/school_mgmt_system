@@ -3,16 +3,22 @@ import { relationshipSchema, studentStatusSchema } from '../enums';
 import {
   ghanaPhoneInputSchema,
   optionalTextSchema,
+  paginationBodySchema,
   paginationQuerySchema,
   personNameSchema,
-  searchTermSchema,
+  searchTextSchema,
 } from './common';
 
-export const guardianListQuerySchema = paginationQuerySchema.extend({
-  /** Name (every word must match) or phone number in any format. */
-  q: searchTermSchema,
-});
+/** `GET /guardians`: paging only. */
+export const guardianListQuerySchema = paginationQuerySchema;
 export type GuardianListQuery = z.infer<typeof guardianListQuerySchema>;
+
+/** `POST /guardians/search`: the search text travels in the body, never in the URL. */
+export const guardianSearchSchema = paginationBodySchema.extend({
+  /** Name (every word must match) or phone number in any format. */
+  q: searchTextSchema,
+});
+export type GuardianSearch = z.infer<typeof guardianSearchSchema>;
 
 export const guardianSummarySchema = z.object({
   id: z.uuid(),

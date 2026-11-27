@@ -48,10 +48,11 @@ describe('studentReach', () => {
     { roles: ['class_teacher'], action: 'students.edit', expected: null },
     { roles: ['system_admin'], action: 'students.read', expected: null },
     { roles: [], action: 'students.read', expected: null },
-  ] satisfies { roles: StaffRole[]; action: Parameters<typeof studentReach>[1]; expected: unknown }[])(
-    '$roles → $action',
-    ({ roles, action, expected }) => {
-      expect(studentReach(user(roles), action)).toEqual(expected);
-    },
-  );
+  ] satisfies {
+    roles: StaffRole[];
+    action: Parameters<typeof studentReach>[1];
+    expected: unknown;
+  }[])('$roles → $action', ({ roles, action, expected }) => {
+    expect(studentReach(user(roles), action)).toEqual(expected);
+  });
 });

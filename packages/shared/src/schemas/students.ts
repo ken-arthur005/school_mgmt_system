@@ -10,22 +10,35 @@ import {
 import {
   dateOnlySchema,
   optionalTextSchema,
+  paginationBodySchema,
   paginationQuerySchema,
   personNameSchema,
-  searchTermSchema,
+  searchTextSchema,
   timestampSchema,
 } from './common';
 
+/** Defaults to current students; `any` includes former ones. */
+const statusFilterSchema = z.enum([...STUDENT_STATUSES, 'any']).default('active');
+/** Only students in this class (a class belongs to one academic year). */
+const classFilterSchema = z.uuid().optional();
+
+/** `GET /students`: filters are ids and fixed values only, safe in a URL. */
 export const studentListQuerySchema = paginationQuerySchema.extend({
-  /** Name (every word must match), admission number, or a guardian's phone in any format. */
-  q: searchTermSchema,
-  /** Defaults to current students; `any` includes former ones. */
-  status: z.enum([...STUDENT_STATUSES, 'any']).default('active'),
+  status: statusFilterSchema,
   includeArchived: z.stringbool().default(false),
-  /** Only students in this class (a class belongs to one academic year). */
-  classId: z.uuid().optional(),
+  classId: classFilterSchema,
 });
 export type StudentListQuery = z.infer<typeof studentListQuerySchema>;
+
+/** `POST /students/search`: the same filters plus the search text, in the body. */
+export const studentSearchSchema = paginationBodySchema.extend({
+  /** Name (every word must match), admission number, or a guardian's phone in any format. */
+  q: searchTextSchema,
+  status: statusFilterSchema,
+  includeArchived: z.boolean().default(false),
+  classId: classFilterSchema,
+});
+export type StudentSearch = z.infer<typeof studentSearchSchema>;
 
 export const studentSummarySchema = z.object({
   id: z.uuid(),

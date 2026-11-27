@@ -1,3 +1,4 @@
+import type { ErrorResponse } from '@school-mgmt/shared';
 import { sql } from 'drizzle-orm';
 import { generateKeyPair } from 'jose';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
@@ -59,13 +60,11 @@ describe('signing in', () => {
   test('a valid login with no staff account → 403 with a plain message', async () => {
     const res = await getStudents(bearer(await signToken('0190a0a0-0000-7000-8000-000000000000')));
     expect(res.statusCode).toBe(403);
-    expect(res.json().error.message).toMatch(/not linked to a staff account/);
+    expect(res.json<ErrorResponse>().error.message).toMatch(/not linked to a staff account/);
   });
 
   test('the System user can never sign in', async () => {
-    const rows = await ctx.db.execute<{ id: string }>(
-      sql`select id from users where is_system`,
-    );
+    const rows = await ctx.db.execute<{ id: string }>(sql`select id from users where is_system`);
     const res = await getStudents(bearer(await signToken(rows[0]?.id ?? '')));
     expect(res.statusCode).toBe(403);
   });

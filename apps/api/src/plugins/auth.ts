@@ -154,8 +154,14 @@ export function registerAuth(app: FastifyInstance, deps: AuthDeps): void {
 
   // Fail at startup, not in production, if someone adds a route and forgets its permission.
   app.addHook('onRoute', (route) => {
+    // @fastify/cors answers browser preflights on `OPTIONS *`. Browsers never send a login
+    // with a preflight, so that one route is public by nature.
+    if (route.method === 'OPTIONS' && route.url === '*') {
+      route.config = { ...route.config, public: true };
+      return;
+    }
     if (route.config?.public !== true && route.config?.permission === undefined) {
-      throw new Error(`Route ${route.method} ${route.url} must declare config.permission`);
+      throw new Error(`Route ${String(route.method)} ${route.url} must declare config.permission`);
     }
   });
 

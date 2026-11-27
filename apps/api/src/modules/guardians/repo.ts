@@ -2,7 +2,7 @@ import { type Db, schema, type Tx } from '@school-mgmt/db';
 import type { GuardianEdit, GuardianListQuery } from '@school-mgmt/shared';
 import { and, asc, count, eq, exists, isNull, or, type SQL, sql } from 'drizzle-orm';
 import type { StudentReach } from '../../access';
-import { nameMatches, studentInReach } from '../students/repo';
+import { nameMatches, type SearchText, studentInReach } from '../students/repo';
 
 const { guardians, studentGuardians, students } = schema;
 
@@ -27,30 +27,36 @@ function guardianInReach(reach: StudentReach, guardianId: SQL | typeof guardians
   );
 }
 
+function searchCondition({ text, phone }: SearchText): SQL | undefined {
+  if (phone !== null) {
+    return or(
+      eq(guardians.primaryPhone, phone),
+      eq(guardians.whatsappPhone, phone),
+      eq(guardians.secondaryPhone, phone),
+    );
+  }
+  return nameMatches(
+    text,
+    sql`${guardians.firstName}`,
+    sql`${guardians.otherNames}`,
+    sql`${guardians.surname}`,
+  );
+}
+
 export async function listGuardians(
   db: Db,
-  params: { schoolId: string; reach: StudentReach; query: GuardianListQuery; phone: string | null },
+  params: {
+    schoolId: string;
+    reach: StudentReach;
+    query: GuardianListQuery;
+    search: SearchText | null;
+  },
 ) {
-  const { query, phone } = params;
-  const search =
-    query.q === undefined
-      ? undefined
-      : phone !== null
-        ? or(
-            eq(guardians.primaryPhone, phone),
-            eq(guardians.whatsappPhone, phone),
-            eq(guardians.secondaryPhone, phone),
-          )
-        : nameMatches(
-            query.q,
-            sql`${guardians.firstName}`,
-            sql`${guardians.otherNames}`,
-            sql`${guardians.surname}`,
-          );
+  const { query } = params;
   const where = and(
     eq(guardians.schoolId, params.schoolId),
     isNull(guardians.archivedAt),
-    search,
+    params.search === null ? undefined : searchCondition(params.search),
     guardianInReach(params.reach, guardians.id),
   );
 
