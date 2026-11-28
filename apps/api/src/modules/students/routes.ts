@@ -1,7 +1,7 @@
-import type { Db } from '@school-mgmt/db';
 import {
   errorResponseSchema,
   idParamsSchema,
+  medicalNoteCreateSchema,
   studentDetailSchema,
   studentEditSchema,
   studentListQuerySchema,
@@ -10,6 +10,7 @@ import {
 } from '@school-mgmt/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { authOf } from '../../plugins/auth';
+import type { Services } from '../../services';
 import * as service from './service';
 
 const errors = {
@@ -19,7 +20,9 @@ const errors = {
   404: errorResponseSchema,
 };
 
-export const studentRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) => {
+export const studentRoutes: FastifyPluginAsyncZod<{ services: Services }> = (app, { services }) => {
+  const changed = { 200: studentDetailSchema, 409: errorResponseSchema, ...errors };
+
   app.get(
     '/students',
     {
@@ -29,7 +32,7 @@ export const studentRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) =>
         response: { 200: studentListResponseSchema, ...errors },
       },
     },
-    (request) => service.listStudents(db, authOf(request), request.query),
+    (request) => service.listStudents(services, authOf(request), request.query),
   );
 
   // POST so names and phone numbers travel in the body, never in the URL (which gets logged).
@@ -42,7 +45,7 @@ export const studentRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) =>
         response: { 200: studentListResponseSchema, ...errors },
       },
     },
-    (request) => service.searchStudents(db, authOf(request), request.body),
+    (request) => service.searchStudents(services, authOf(request), request.body),
   );
 
   app.get(
@@ -54,7 +57,7 @@ export const studentRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) =>
         response: { 200: studentDetailSchema, ...errors },
       },
     },
-    (request) => service.getStudent(db, authOf(request), request.params.id),
+    (request) => service.getStudent(services, authOf(request), request.params.id),
   );
 
   app.patch(
@@ -67,7 +70,35 @@ export const studentRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) =>
         response: { 200: studentDetailSchema, 409: errorResponseSchema, ...errors },
       },
     },
-    (request) => service.editStudent(db, authOf(request), request.params.id, request.body),
+    (request) => service.editStudent(services, authOf(request), request.params.id, request.body),
+  );
+
+  app.post(
+    '/students/:id/medical-notes',
+    {
+      config: { permission: 'medical_notes.edit' },
+      schema: { params: idParamsSchema, body: medicalNoteCreateSchema, response: changed },
+    },
+    (request) => service.addMedicalNote(services, authOf(request), request.params.id, request.body),
+  );
+
+  app.post(
+    '/medical-notes/:id/archive',
+    {
+      config: { permission: 'medical_notes.edit' },
+      schema: { params: idParamsSchema, response: changed },
+    },
+    (request) =>
+      service.setMedicalNoteArchived(services, authOf(request), request.params.id, new Date()),
+  );
+
+  app.post(
+    '/medical-notes/:id/restore',
+    {
+      config: { permission: 'medical_notes.edit' },
+      schema: { params: idParamsSchema, response: changed },
+    },
+    (request) => service.setMedicalNoteArchived(services, authOf(request), request.params.id, null),
   );
 
   return Promise.resolve();

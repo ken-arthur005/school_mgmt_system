@@ -61,4 +61,6 @@ export const ghanaPhoneInputSchema = z
   .transform((value) => tryNormalizeGhanaPhone(value) ?? value);
 
 export const timestampSchema = z.iso.datetime();
+/** A short-lived link to a private photo, or null when there is none. */
+export const photoUrlSchema = z.url().nullable();
 export const dateOnlySchema = z.iso.date();

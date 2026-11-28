@@ -2,7 +2,7 @@ import type { ElectiveGroup, LevelStage } from '@school-mgmt/shared';
 
 // The fixed shape of the seed school. Everything random lives in generate.ts.
 
-export const SEED_SCHOOL = { name: 'Demo Basic School', shortName: 'DBS' } as const;
+export const SEED_SCHOOL = { name: 'Beverly Hills Academy', shortName: 'BHA' } as const;
 
 export interface LevelPlan {
   code: string;

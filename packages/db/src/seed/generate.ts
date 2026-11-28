@@ -10,6 +10,7 @@ import {
   FIXTURE_FAMILIES,
   FIXTURE_PHONES,
   FIXTURE_STAFF,
+  FIXTURE_WARDS,
   type FixtureFamily,
   type FixtureStudent,
 } from './fixtures';
@@ -56,6 +57,7 @@ export interface SeedData {
   classes: Insert<typeof schema.classes>[];
   classSubjects: Insert<typeof schema.classSubjects>[];
   staffAssignments: Insert<typeof schema.staffAssignments>[];
+  families: Insert<typeof schema.families>[];
   students: Insert<typeof schema.students>[];
   studentMedicalNotes: Insert<typeof schema.studentMedicalNotes>[];
   guardians: Insert<typeof schema.guardians>[];
@@ -396,6 +398,17 @@ export function generateSeedData(seed: number = DEFAULT_SEED): SeedData {
   const studentGuardians: Insert<typeof schema.studentGuardians>[] = [];
   const religionByStudent = new Map<string, Religion | null>();
   const languageByStudent = new Map<string, 'TWI' | 'DAG'>();
+  const families: Insert<typeof schema.families>[] = [];
+  const familyIdByStudent = new Map<string, string>();
+  const guardianIdByPhone = new Map<string, string>();
+
+  const addFamily = (name: string, children: readonly StudentPlan[]): void => {
+    const id = uuidv7();
+    families.push({ id, ...base, name });
+    for (const child of children) {
+      familyIdByStudent.set(child.id, id);
+    }
+  };
 
   const addGuardian = (input: {
     firstName: string;
@@ -466,6 +479,9 @@ export function generateSeedData(seed: number = DEFAULT_SEED): SeedData {
       religionByStudent.set(child.id, traits.religion);
       languageByStudent.set(child.id, traits.language);
     }
+    if (family.familyName !== undefined) {
+      addFamily(family.familyName, children);
+    }
     for (const guardian of family.guardians) {
       const guardianId = addGuardian({
         firstName: guardian.firstName,
@@ -475,10 +491,24 @@ export function generateSeedData(seed: number = DEFAULT_SEED): SeedData {
           ? {}
           : { userId: lookup(userIdByFixture, guardian.staff, 'fixture user') }),
       });
+      guardianIdByPhone.set(guardian.phone, guardianId);
       for (const child of children) {
         link(child.id, guardianId, guardian.relationship, guardian.isMainContact, true);
       }
     }
+  }
+  const fixtureChildren = [...fixturePlans.values()].flat();
+  for (const ward of FIXTURE_WARDS) {
+    const child = fixtureChildren.find(
+      (plan) =>
+        plan.fixture?.firstName === ward.student.firstName &&
+        plan.fixture.surname === ward.student.surname,
+    );
+    if (child === undefined) {
+      throw new Error(`Seed bug: no ward called ${ward.student.firstName}`);
+    }
+    const guardianId = lookup(guardianIdByPhone, ward.guardianPhone, 'ward guardian');
+    link(child.id, guardianId, ward.relationship, ward.isMainContact, true);
   }
 
   // Generated families of 1–4 children, with 1–2 guardians.
@@ -499,6 +529,9 @@ export function generateSeedData(seed: number = DEFAULT_SEED): SeedData {
       child.surname = random.chance(0.9) ? familySurname : random.pick(SURNAMES);
       religionByStudent.set(child.id, traits.religion);
       languageByStudent.set(child.id, traits.language);
+    }
+    if (children.length > 1) {
+      addFamily(`${familySurname} family`, children);
     }
 
     const makeup = random.weighted<readonly Relationship[]>([
@@ -578,6 +611,7 @@ export function generateSeedData(seed: number = DEFAULT_SEED): SeedData {
       ghanaCardNumber: random.chance(0.3) ? `GHA-${random.digits(9)}-${random.digits(1)}` : null,
       nhisNumber: random.chance(0.6) ? random.digits(8) : null,
       religion: religionByStudent.get(plan.id) ?? null,
+      familyId: familyIdByStudent.get(plan.id) ?? null,
     });
 
     if (plan.fixture === undefined && random.chance(0.05)) {
@@ -652,6 +686,7 @@ export function generateSeedData(seed: number = DEFAULT_SEED): SeedData {
     classes,
     classSubjects,
     staffAssignments,
+    families,
     students,
     studentMedicalNotes,
     guardians,

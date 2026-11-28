@@ -10,6 +10,7 @@ import {
 import {
   dateOnlySchema,
   optionalTextSchema,
+  photoUrlSchema,
   paginationBodySchema,
   paginationQuerySchema,
   personNameSchema,
@@ -51,6 +52,7 @@ export const studentSummarySchema = z.object({
   /** This year's class, or null when the student isn't enrolled this year. */
   className: z.string().nullable(),
   isBoarder: z.boolean(),
+  photoUrl: photoUrlSchema,
 });
 export type StudentSummary = z.infer<typeof studentSummarySchema>;
 
@@ -63,6 +65,8 @@ export const studentListResponseSchema = z.object({
 export type StudentListResponse = z.infer<typeof studentListResponseSchema>;
 
 export const studentGuardianLinkSchema = z.object({
+  linkId: z.uuid(),
+  photoUrl: photoUrlSchema,
   guardianId: z.uuid(),
   surname: z.string(),
   firstName: z.string(),
@@ -82,6 +86,18 @@ export const medicalNoteSchema = z.object({
 });
 export type MedicalNote = z.infer<typeof medicalNoteSchema>;
 
+/** Another child in the same family. */
+export const siblingSchema = z.object({
+  studentId: z.uuid(),
+  admissionNumber: z.string(),
+  surname: z.string(),
+  firstName: z.string(),
+  status: studentStatusSchema,
+  className: z.string().nullable(),
+  photoUrl: photoUrlSchema,
+});
+export type Sibling = z.infer<typeof siblingSchema>;
+
 export const studentDetailSchema = z.object({
   id: z.uuid(),
   admissionNumber: z.string(),
@@ -96,6 +112,10 @@ export const studentDetailSchema = z.object({
   ghanaCardNumber: z.string().nullable(),
   nhisNumber: z.string().nullable(),
   archivedAt: timestampSchema.nullable(),
+  photoUrl: photoUrlSchema,
+  family: z.object({ id: z.uuid(), name: z.string() }).nullable(),
+  /** Only the brothers and sisters the caller is allowed to see. */
+  siblings: z.array(siblingSchema),
   currentEnrolment: z
     .object({
       classId: z.uuid(),
@@ -114,7 +134,7 @@ export type StudentDetail = z.infer<typeof studentDetailSchema>;
 
 /**
  * Fields the office can correct. Admission number (server-assigned), status (changes with
- * enrolment), and photo (Sprint 3) are not edited here.
+ * enrolment) and photo (its own endpoint) are not edited here.
  */
 export const studentEditSchema = z
   .strictObject({
@@ -135,3 +155,10 @@ export const studentEditSchema = z
   .partial()
   .refine((body) => Object.keys(body).length > 0, { message: 'Nothing to change.' });
 export type StudentEdit = z.infer<typeof studentEditSchema>;
+
+/** A new medical note. The id comes from the device, so a retried save adds it only once. */
+export const medicalNoteCreateSchema = z.strictObject({
+  id: z.uuid(),
+  note: z.string().trim().min(1, 'Please write the note.').max(1000, 'This is too long.'),
+});
+export type MedicalNoteCreate = z.infer<typeof medicalNoteCreateSchema>;

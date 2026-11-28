@@ -132,13 +132,20 @@ describe('3. enrolment counts', () => {
 });
 
 describe('4. siblings', () => {
-  test('children sharing a guardian', async () => {
+  test('the other children in the same family', async () => {
     const ama = await find.student('Ama', 'Asamoah');
     const rows = await findSiblings(db, { schoolId, studentId: ama.id });
     expect(fullNames(rows)).toEqual(['Kwame Asamoah', 'Yaa Asamoah']);
   });
 
+  test('sharing a guardian does not make children siblings', async () => {
+    const nana = await find.student('Nana', 'Wiredu');
+    const rows = await findSiblings(db, { schoolId, studentId: nana.id });
+    expect(fullNames(rows)).toEqual(['Adjoa Wiredu']);
+  });
+
   test.each([
+    ['Kobby', 'Nkansah'],
     ['Akua', 'Dapaah'],
     ['Kojo', 'Boadu'],
   ])('an only child (%s %s) has none', async (firstName, surname) => {

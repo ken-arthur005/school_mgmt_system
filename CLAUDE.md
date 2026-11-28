@@ -578,13 +578,14 @@ Do the current sprint's work; don't build later-sprint features early unless ask
 - *Done when:* a class-teacher token can read their class but gets 403 on anything money-related.
 
 **Sprint 3: Staff app and student records**
-- App shell: login, 4-digit PIN unlock, a home screen per role with big task buttons.
+- App shell: login, a home screen per role with big task buttons.
 - Global search (name, admission number, phone).
 - Student profile: details, guardians, siblings, medical notes; edit with validation.
 - Link guardians and siblings into one family.
 - *Done when:* on a phone-sized viewport, a teacher signs in, finds a student and edits a guardian phone.
 
 **Sprint 4: Offline spike**
+- 4-digit PIN unlock on staff devices.
 - PowerSync connected; sync rules per role (teacher: their classes; bursar: all fee accounts).
 - Edit offline → reconnect → change reaches Postgres via `/sync/upload` and domain services.
 - Offline / "saved on this phone" indicator.

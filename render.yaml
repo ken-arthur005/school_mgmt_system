@@ -24,3 +24,6 @@ services:
         sync: false
       - key: SUPABASE_URL
         sync: false
+      # Server-only secret, used for photo storage (Sprint 3).
+      - key: SUPABASE_SECRET_KEY
+        sync: false

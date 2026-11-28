@@ -9,6 +9,7 @@ import {
   ilike,
   inArray,
   isNull,
+  ne,
   or,
   type SQL,
   sql,
@@ -16,7 +17,7 @@ import {
 import type { StudentReach } from '../../access';
 
 const { classes, enrolments, guardians, studentGuardians, studentMedicalNotes, students } = schema;
-const { academicYears } = schema;
+const { academicYears, families } = schema;
 
 /** Escapes LIKE wildcards so a search for "50%" means the characters, not "anything". */
 export function escapeLike(text: string): string {
@@ -64,7 +65,7 @@ export function studentInReach(reach: StudentReach, studentId: SQL | typeof stud
 }
 
 /** Joins each student's enrolment for the given year (at most one: a DB constraint). */
-function thisYearsEnrolment(academicYearId: string | null): SQL {
+export function thisYearsEnrolment(academicYearId: string | null): SQL {
   return academicYearId === null
     ? sql`false`
     : sql`${and(
@@ -150,6 +151,7 @@ export async function listStudents(
       status: students.status,
       className: classes.name,
       isBoarder: sql<boolean>`coalesce(${enrolments.isBoarder}, false)`,
+      photoPath: students.photoPath,
     })
     .from(students)
     .leftJoin(enrolments, thisYearsEnrolment(params.academicYearId))
@@ -211,6 +213,8 @@ export async function findCurrentEnrolment(
 export async function listGuardianLinks(db: Db, params: { schoolId: string; studentId: string }) {
   return db
     .select({
+      linkId: studentGuardians.id,
+      photoPath: guardians.photoPath,
       guardianId: guardians.id,
       surname: guardians.surname,
       firstName: guardians.firstName,
@@ -264,4 +268,80 @@ export async function updateStudent(
     .update(students)
     .set(params.changes)
     .where(and(eq(students.schoolId, params.schoolId), eq(students.id, params.id)));
+}
+
+export async function findFamily(db: Db, params: { schoolId: string; familyId: string | null }) {
+  if (params.familyId === null) return null;
+  const [row] = await db
+    .select({ id: families.id, name: families.name })
+    .from(families)
+    .where(and(eq(families.schoolId, params.schoolId), eq(families.id, params.familyId)));
+  return row ?? null;
+}
+
+/** The other children of a family that the caller may see. */
+export async function listSiblings(
+  db: Db,
+  params: {
+    schoolId: string;
+    studentId: string;
+    familyId: string | null;
+    academicYearId: string | null;
+    reach: StudentReach;
+  },
+) {
+  if (params.familyId === null) return [];
+  return db
+    .select({
+      studentId: students.id,
+      admissionNumber: students.admissionNumber,
+      surname: students.surname,
+      firstName: students.firstName,
+      status: students.status,
+      className: classes.name,
+      photoPath: students.photoPath,
+    })
+    .from(students)
+    .leftJoin(enrolments, thisYearsEnrolment(params.academicYearId))
+    .leftJoin(classes, eq(classes.id, enrolments.classId))
+    .where(
+      and(
+        eq(students.schoolId, params.schoolId),
+        eq(students.familyId, params.familyId),
+        ne(students.id, params.studentId),
+        isNull(students.archivedAt),
+        studentInReach(params.reach, students.id),
+      ),
+    )
+    .orderBy(asc(students.firstName), asc(students.surname), asc(students.id));
+}
+
+export async function addMedicalNote(
+  tx: Tx,
+  values: { id: string; schoolId: string; createdBy: string; studentId: string; note: string },
+): Promise<void> {
+  // A retried save arrives with the same id and changes nothing.
+  await tx.insert(studentMedicalNotes).values(values).onConflictDoNothing();
+}
+
+export async function findMedicalNote(db: Db | Tx, params: { schoolId: string; id: string }) {
+  const [row] = await db
+    .select()
+    .from(studentMedicalNotes)
+    .where(
+      and(eq(studentMedicalNotes.schoolId, params.schoolId), eq(studentMedicalNotes.id, params.id)),
+    );
+  return row ?? null;
+}
+
+export async function setMedicalNoteArchived(
+  tx: Tx,
+  params: { schoolId: string; id: string; archivedAt: Date | null },
+): Promise<void> {
+  await tx
+    .update(studentMedicalNotes)
+    .set({ archivedAt: params.archivedAt })
+    .where(
+      and(eq(studentMedicalNotes.schoolId, params.schoolId), eq(studentMedicalNotes.id, params.id)),
+    );
 }

@@ -14,35 +14,28 @@ import {
 import type { Db } from '../client';
 import { guardians, studentGuardians, students } from '../schema';
 
-/** Query 4: a student's brothers and sisters, meaning anyone sharing at least one guardian. */
+/** Query 4: a student's brothers and sisters, meaning the others in the same family. */
 export async function findSiblings(db: Db, params: { schoolId: string; studentId: string }) {
-  const theirGuardians = db
-    .select({ guardianId: studentGuardians.guardianId })
-    .from(studentGuardians)
-    .where(
-      and(
-        eq(studentGuardians.schoolId, params.schoolId),
-        eq(studentGuardians.studentId, params.studentId),
-        isNull(studentGuardians.archivedAt),
-      ),
-    );
+  const theirFamily = db
+    .select({ familyId: students.familyId })
+    .from(students)
+    .where(and(eq(students.schoolId, params.schoolId), eq(students.id, params.studentId)));
 
   return db
-    .selectDistinct({
+    .select({
       studentId: students.id,
       admissionNumber: students.admissionNumber,
       surname: students.surname,
       firstName: students.firstName,
       status: students.status,
     })
-    .from(studentGuardians)
-    .innerJoin(students, eq(students.id, studentGuardians.studentId))
+    .from(students)
     .where(
       and(
         eq(students.schoolId, params.schoolId),
-        inArray(studentGuardians.guardianId, theirGuardians),
-        ne(studentGuardians.studentId, params.studentId),
-        isNull(studentGuardians.archivedAt),
+        // A student with no family matches nothing: NULL is never IN a list.
+        inArray(students.familyId, theirFamily),
+        ne(students.id, params.studentId),
         isNull(students.archivedAt),
       ),
     )

@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "auth:dev-logins": "tsx --env-file-if-exists=.env src/scripts/create-dev-logins.ts"
+    "auth:dev-logins": "tsx --env-file-if-exists=.env src/scripts/create-dev-logins.ts",
+    "storage:setup": "tsx --env-file-if-exists=.env src/scripts/setup-storage.ts"
   },
   "dependencies": {
     "@fastify/cors": "11.4.3",

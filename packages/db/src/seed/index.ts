@@ -61,6 +61,7 @@ export async function seedDatabase(db: Db, seed: number = DEFAULT_SEED): Promise
     await insertInBatches(tx, schema.classes, data.classes);
     await insertInBatches(tx, schema.classSubjects, data.classSubjects);
     await insertInBatches(tx, schema.staffAssignments, data.staffAssignments);
+    await insertInBatches(tx, schema.families, data.families);
     await insertInBatches(tx, schema.students, data.students);
     await insertInBatches(tx, schema.studentMedicalNotes, data.studentMedicalNotes);
     await insertInBatches(tx, schema.guardians, data.guardians);

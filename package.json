@@ -12,6 +12,7 @@
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "test:e2e": "pnpm --filter @school-mgmt/web test:e2e",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:generate": "pnpm --filter @school-mgmt/db db:generate",
@@ -19,7 +20,8 @@
     "db:seed": "pnpm --filter @school-mgmt/db db:seed",
     "db:reset": "pnpm --filter @school-mgmt/db db:reset",
     "db:test:up": "docker compose up -d --wait",
-    "auth:dev-logins": "pnpm --filter @school-mgmt/api auth:dev-logins"
+    "auth:dev-logins": "pnpm --filter @school-mgmt/api auth:dev-logins",
+    "storage:setup": "pnpm --filter @school-mgmt/api storage:setup"
   },
   "devDependencies": {
     "prettier": "3.10.1",

@@ -4,3 +4,9 @@ dist/
 coverage/
 **/CLAUDE.md
 packages/db/migrations/
+apps/web/src/routeTree.gen.ts
+# Installed design skills: not our code.
+.agents/
+.claude/
+.github/agents/
+.github/skills/

@@ -9,7 +9,13 @@ import {
 import type { JWTVerifyGetKey } from 'jose';
 import type { Env } from './env';
 import { guardianRoutes } from './modules/guardians/routes';
+import { familyRoutes } from './modules/families/routes';
 import { healthRoutes } from './modules/health/routes';
+import { linkRoutes } from './modules/links/routes';
+import { meRoutes } from './modules/me/routes';
+import { photoRoutes } from './modules/photos/routes';
+import type { PhotoStorage } from './modules/photos/storage';
+import { staffRoutes } from './modules/staff/routes';
 import { studentRoutes } from './modules/students/routes';
 import { registerAuth } from './plugins/auth';
 import { registerErrorHandlers } from './plugins/error-handler';
@@ -18,6 +24,8 @@ export interface AppDeps {
   db: Db;
   /** Supabase's public signing keys. server.ts fetches them; tests pass a local key set. */
   jwks: JWTVerifyGetKey;
+  /** Where photo files are kept. */
+  photos: PhotoStorage;
   /** The clock. Tests fix it so "the current academic year" doesn't drift. */
   now?: () => Date;
 }
@@ -43,10 +51,17 @@ export async function buildApp(env: Env, deps: AppDeps): Promise<FastifyInstance
     now: deps.now ?? (() => new Date()),
   });
 
-  await app.register(cors, { origin: env.CORS_ORIGINS });
+  // The default list leaves out PATCH and PUT, so browsers would refuse to send edits.
+  await app.register(cors, { origin: env.CORS_ORIGINS, methods: ['GET', 'POST', 'PATCH', 'PUT'] });
   await app.register(healthRoutes, { env });
-  await app.register(studentRoutes, { db: deps.db });
-  await app.register(guardianRoutes, { db: deps.db });
+  const services = { db: deps.db, photos: deps.photos, log: app.log };
+  await app.register(meRoutes, { services });
+  await app.register(studentRoutes, { services });
+  await app.register(guardianRoutes, { services });
+  await app.register(linkRoutes, { services });
+  await app.register(familyRoutes, { services });
+  await app.register(staffRoutes, { services });
+  await app.register(photoRoutes, { services });
 
   return app;
 }

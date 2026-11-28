@@ -1,4 +1,3 @@
-import type { Db } from '@school-mgmt/db';
 import {
   errorResponseSchema,
   guardianDetailSchema,
@@ -10,6 +9,7 @@ import {
 } from '@school-mgmt/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { authOf } from '../../plugins/auth';
+import type { Services } from '../../services';
 import * as service from './service';
 
 const errors = {
@@ -19,7 +19,10 @@ const errors = {
   404: errorResponseSchema,
 };
 
-export const guardianRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) => {
+export const guardianRoutes: FastifyPluginAsyncZod<{ services: Services }> = (
+  app,
+  { services },
+) => {
   app.get(
     '/guardians',
     {
@@ -29,7 +32,7 @@ export const guardianRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) =
         response: { 200: guardianListResponseSchema, ...errors },
       },
     },
-    (request) => service.listGuardians(db, authOf(request), request.query),
+    (request) => service.listGuardians(services, authOf(request), request.query),
   );
 
   // POST so names and phone numbers travel in the body, never in the URL (which gets logged).
@@ -42,7 +45,7 @@ export const guardianRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) =
         response: { 200: guardianListResponseSchema, ...errors },
       },
     },
-    (request) => service.searchGuardians(db, authOf(request), request.body),
+    (request) => service.searchGuardians(services, authOf(request), request.body),
   );
 
   app.get(
@@ -54,7 +57,7 @@ export const guardianRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) =
         response: { 200: guardianDetailSchema, ...errors },
       },
     },
-    (request) => service.getGuardian(db, authOf(request), request.params.id),
+    (request) => service.getGuardian(services, authOf(request), request.params.id),
   );
 
   app.patch(
@@ -68,7 +71,7 @@ export const guardianRoutes: FastifyPluginAsyncZod<{ db: Db }> = (app, { db }) =
         response: { 200: guardianDetailSchema, ...errors },
       },
     },
-    (request) => service.editGuardian(db, authOf(request), request.params.id, request.body),
+    (request) => service.editGuardian(services, authOf(request), request.params.id, request.body),
   );
 
   return Promise.resolve();

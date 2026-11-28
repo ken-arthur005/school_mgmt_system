@@ -36,6 +36,8 @@ export interface FixtureStudent {
 }
 
 export interface FixtureFamily {
+  /** Set when the children belong to one family record (brothers and sisters). */
+  familyName?: string;
   guardians: readonly FixtureGuardian[];
   students: readonly FixtureStudent[];
 }
@@ -43,6 +45,7 @@ export interface FixtureFamily {
 export const FIXTURE_FAMILIES = {
   /** Three children, two guardians: shows up in "guardians with 3+ children". */
   asamoah: {
+    familyName: 'Asamoah family',
     guardians: [
       {
         firstName: 'Kwabena',
@@ -66,6 +69,7 @@ export const FIXTURE_FAMILIES = {
     ],
   },
   kuffour: {
+    familyName: 'Kuffour family',
     guardians: [
       {
         firstName: 'Abena',
@@ -120,6 +124,39 @@ export const FIXTURE_FAMILIES = {
     ],
     students: [{ firstName: 'Yaw', surname: 'Sakyi', sex: 'male', levelCode: 'B4', stream: 'A' }],
   },
+  /** Comfort Wiredu also looks after Kobby Nkansah (see FIXTURE_WARDS). */
+  wiredu: {
+    familyName: 'Wiredu family',
+    guardians: [
+      {
+        firstName: 'Comfort',
+        surname: 'Wiredu',
+        relationship: 'mother',
+        phone: '+233244000106',
+        isMainContact: true,
+      },
+    ],
+    students: [
+      { firstName: 'Nana', surname: 'Wiredu', sex: 'male', levelCode: 'B3', stream: 'A' },
+      { firstName: 'Adjoa', surname: 'Wiredu', sex: 'female', levelCode: 'N2', stream: 'A' },
+    ],
+  },
+  /** His father travelled; the main contact is a carer who is not family. */
+  nkansah: {
+    familyName: 'Nkansah family',
+    guardians: [
+      {
+        firstName: 'Yaw',
+        surname: 'Nkansah',
+        relationship: 'father',
+        phone: '+233244000107',
+        isMainContact: false,
+      },
+    ],
+    students: [
+      { firstName: 'Kobby', surname: 'Nkansah', sex: 'male', levelCode: 'B3', stream: 'A' },
+    ],
+  },
   darkwa: {
     guardians: [
       {
@@ -136,6 +173,21 @@ export const FIXTURE_FAMILIES = {
     ],
   },
 } as const satisfies Record<string, FixtureFamily>;
+
+/** A guardian looking after a child of another family: linked to them, but not their relation. */
+export const FIXTURE_WARDS = [
+  {
+    guardianPhone: '+233244000106',
+    student: { firstName: 'Kobby', surname: 'Nkansah' },
+    relationship: 'guardian',
+    isMainContact: true,
+  },
+] as const satisfies readonly {
+  guardianPhone: string;
+  student: { firstName: string; surname: string };
+  relationship: Relationship;
+  isMainContact: boolean;
+}[];
 
 export const FIXTURE_PHONES: readonly string[] = [
   ...Object.values(FIXTURE_STAFF).map((person) => person.phone),

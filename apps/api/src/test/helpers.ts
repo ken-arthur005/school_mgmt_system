@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify';
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from 'jose';
 import { buildApp } from '../app';
 import { loadEnv } from '../env';
+import type { PhotoStorage } from '../modules/photos/storage';
 import { API_TEST_DATABASE, TEST_NOW, TEST_SUPABASE_URL } from './constants';
 
 const ISSUER = `${TEST_SUPABASE_URL}/auth/v1`;
@@ -17,7 +18,22 @@ export const testEnv = loadEnv({
   CORS_ORIGINS: 'http://localhost:5173',
   DATABASE_URL: 'postgresql://unused@localhost:5432/unused',
   SUPABASE_URL: TEST_SUPABASE_URL,
+  SUPABASE_SECRET_KEY: 'unused-in-tests',
 });
+
+/** Photo storage kept in memory: tests never call Supabase. */
+export function memoryPhotoStorage() {
+  const files = new Map<string, Buffer>();
+  const storage: PhotoStorage = {
+    upload: (path, bytes) => {
+      files.set(path, bytes);
+      return Promise.resolve();
+    },
+    signedUrls: (paths) =>
+      Promise.resolve(new Map(paths.map((path) => [path, `https://photos.test/${path}`]))),
+  };
+  return { files, storage };
+}
 
 type SigningKey = Awaited<ReturnType<typeof generateKeyPair>>['privateKey'];
 
@@ -44,19 +60,24 @@ export async function signToken(
 export interface TestContext {
   app: FastifyInstance;
   db: Db;
+  /** The files "uploaded" so far, by path. */
+  photoFiles: Map<string, Buffer>;
   close: () => Promise<void>;
 }
 
 export async function startTestApp(): Promise<TestContext> {
   const connection = connectTestDb(API_TEST_DATABASE);
+  const photos = memoryPhotoStorage();
   const app = await buildApp(testEnv, {
     db: connection.db,
+    photos: photos.storage,
     jwks: createLocalJWKSet({ keys: [publicJwk] }),
     now: () => TEST_NOW,
   });
   return {
     app,
     db: connection.db,
+    photoFiles: photos.files,
     close: async () => {
       await app.close();
       await connection.close();
@@ -88,6 +109,13 @@ export function lookup(db: Db) {
         sql`select user_id as id from staff where first_name = ${firstName} and surname = ${surname}`,
         `${firstName} ${surname}`,
       ),
+    staff: (firstName: string, surname: string) =>
+      one(
+        sql`select id from staff where first_name = ${firstName} and surname = ${surname}`,
+        `${firstName} ${surname}`,
+      ),
+    family: (name: string) =>
+      one(sql`select id from families where name = ${name}`, `family called ${name}`),
     student: (firstName: string, surname: string) =>
       one(
         sql`select id from students where first_name = ${firstName} and surname = ${surname}`,

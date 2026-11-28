@@ -20,6 +20,22 @@ import {
 } from 'drizzle-orm/pg-core';
 import { baseColumns, ghanaPhone, notArchived, oneOf, users } from './core';
 
+/**
+ * Which children belong together (brothers and sisters). Separate from guardianship: a guardian may
+ * look after a child of another family without making the children siblings.
+ */
+export const families = pgTable(
+  'families',
+  {
+    ...baseColumns(),
+    name: text('name').notNull(),
+  },
+  (t) => [
+    index('families_school_name_idx').on(t.schoolId, t.name),
+    check('families_name_not_blank', sql`btrim(${t.name}) <> ''`),
+  ],
+);
+
 export const students = pgTable(
   'students',
   {
@@ -37,8 +53,10 @@ export const students = pgTable(
     ghanaCardNumber: text('ghana_card_number'),
     nhisNumber: text('nhis_number'),
     religion: text('religion', { enum: RELIGIONS }),
+    familyId: uuid('family_id').references(() => families.id, { onDelete: 'restrict' }),
   },
   (t) => [
+    index('students_family_id_idx').on(t.familyId),
     uniqueIndex('students_admission_number_key')
       .on(t.schoolId, t.admissionNumber)
       .where(notArchived(t.archivedAt)),
@@ -89,6 +107,7 @@ export const guardians = pgTable(
     digitalAddress: text('digital_address'),
     // Set when the guardian is also a staff member with a login.
     userId: uuid('user_id').references(() => users.id, { onDelete: 'restrict' }),
+    photoPath: text('photo_path'),
   },
   (t) => [
     index('guardians_school_primary_phone_idx').on(t.schoolId, t.primaryPhone),
@@ -156,6 +175,7 @@ export const staff = pgTable(
     email: text('email'),
     startedOn: date('started_on', { mode: 'string' }),
     userId: uuid('user_id').references(() => users.id, { onDelete: 'restrict' }),
+    photoPath: text('photo_path'),
   },
   (t) => [
     uniqueIndex('staff_user_id_key').on(t.userId).where(notArchived(t.archivedAt)),

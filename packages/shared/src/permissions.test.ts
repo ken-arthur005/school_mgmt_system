@@ -10,29 +10,39 @@ const MONEY_ACTIONS: readonly Action[] = [
   'payments.reverse',
 ];
 
-// The agreed matrix (docs/notes.md, Sprint 2), written out in full so a change to the map has to
+// The agreed matrix (docs/notes.md, Sprints 2 and 3), written out in full so a change to the map has to
 // change this table too.
 const ALLOWED: Readonly<Record<StaffRole, readonly Action[]>> = {
   owner: ACTIONS,
   head: ACTIONS,
   admin: [
+    'profile.use',
     'students.read',
     'students.edit',
     'guardians.read',
     'guardians.edit',
     'guardians.edit_contact',
+    'guardians.link',
     'medical_notes.read',
+    'medical_notes.edit',
+    'photos.edit',
+    'families.read',
+    'families.manage',
+    'staff.read',
+    'staff.photo',
   ],
-  bursar: ['students.read', 'guardians.read', ...MONEY_ACTIONS],
+  bursar: ['profile.use', 'students.read', 'guardians.read', 'families.read', ...MONEY_ACTIONS],
   class_teacher: [
+    'profile.use',
     'students.read',
     'guardians.read',
     'guardians.edit_contact',
     'medical_notes.read',
+    'photos.edit',
   ],
-  subject_teacher: ['students.read'],
-  housemaster: ['students.read', 'guardians.read', 'medical_notes.read'],
-  system_admin: [],
+  subject_teacher: ['profile.use', 'students.read'],
+  housemaster: ['profile.use', 'students.read', 'guardians.read', 'medical_notes.read'],
+  system_admin: ['profile.use'],
 };
 
 const cases = STAFF_ROLES.flatMap((role) =>

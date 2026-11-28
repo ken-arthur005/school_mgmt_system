@@ -54,7 +54,11 @@ export function registerErrorHandlers(app: FastifyInstance): void {
     }
 
     const body: ErrorResponse = {
-      error: { code: error.code.toLowerCase(), message: 'The request could not be completed.' },
+      error: {
+        code: error.code.toLowerCase(),
+        message:
+          statusCode === 413 ? 'That file is too big.' : 'The request could not be completed.',
+      },
     };
     return reply.status(statusCode).send(body);
   });

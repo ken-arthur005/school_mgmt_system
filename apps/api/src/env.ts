@@ -20,6 +20,8 @@ const envSchema = z.object({
   DATABASE_URL: z.url(),
   // e.g. https://abcd1234.supabase.co. Login tokens are checked against its public keys (JWKS).
   SUPABASE_URL: z.url().transform((value) => value.replace(/\/+$/, '')),
+  // Server-only secret, used for photo storage. Never put it in a VITE_ variable.
+  SUPABASE_SECRET_KEY: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

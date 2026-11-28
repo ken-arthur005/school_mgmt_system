@@ -9,20 +9,66 @@ reasoning lives in `docs/decisions/`. Update this file as decisions happen, not 
 - **Admission number format:** not decided. The seed uses a temporary `YYYY/NNNN`.
 - **2FA** for `owner`, `head`, `bursar`, `admin`, `system_admin`: deferred to Sprint 10.
 - **Phone sign-in:** Sprint 8, via Supabase's Send SMS hook → our SMS adapter (see Sprint 2).
-- **Render:** the API needs `DATABASE_URL` and `SUPABASE_URL` set in the dashboard before the
-  next deploy (both are in `render.yaml` as `sync: false`).
+- **Deploys:** Render `autoDeploy` is on, on purpose: a push to `main` deploys the API. Set new
+  variables and run new migrations **before** pushing.
+- **Sprint 3 deploy:** Render (the API) needs `SUPABASE_SECRET_KEY`; the developer reports the key
+  and web build variables as set in Cloudflare (28/11/2026), Render still to be
+  confirmed. Supabase `school_mgmt_system` (dev) has migrations 0000-0004, fresh seed data, dev
+  logins and the private `photos` bucket.
 - **Device id:** `app.device_id` stays empty until the `devices` table arrives (Sprint 4).
 - **Boarders** are `enrolments.is_boarder` in the current year (the seed sets it for JHS 3).
   Housemasters see these students. Houses and beds come in Phase 4.
-- **Creating, archiving and linking** students/guardians: not built yet. Linking guardians and
-  siblings comes in Sprint 3; creating students comes with import (Sprint 5).
+- **Creating and archiving** students and guardians outside linking: not built yet. Creating
+  students comes with import (Sprint 5), as does merging duplicate guardians.
+- **Web bundle:** about 260 kB compressed on first load. Worth trimming before the PWA (Sprint 4).
 - **Money permissions are coarse** (`fees.read`, `fees.manage`, `payments.read`,
   `payments.record`, `payments.reverse`; owner, head and bursar only). Split them in Sprints 6–7,
   e.g. who reverses payments and who approves discounts (still an open question in CLAUDE.md).
 - **Student fields not editable through PATCH /students:** admission number (server-assigned),
-  status (changes with enrolment: promotion/withdrawal flows), `admitted_on`, photo (Sprint 3).
-- **Medical notes:** read-only in Sprint 2 (inside student detail). Adding/editing comes with the
-  Sprint 3 profile screen.
+  status (changes with enrolment: promotion/withdrawal flows), `admitted_on`, photo (its own
+  endpoint).
+
+## Sprint 3: Staff app and student records
+
+Decisions from the planning discussion:
+
+- **Online only.** TanStack Query, with data access in `features/*/hooks` so Sprint 4 can swap in
+  PowerSync. **PIN unlock and PWA install moved to Sprint 4.**
+- **Sign-in:** email + password. Forgotten password = "Ask the office".
+- **Home:** only working task buttons; one combined home for several roles; a plain empty home for
+  `system_admin`. **Dashboard shows real counts only** (students, classes, my class size). Charts
+  wait for Sprint 9.
+- **Search:** one box with two groups, Students and Parents. Subject teachers see students only.
+- **Medical notes:** owner, head and admin edit. A wrong note is archived and replaced.
+- **Photos:** optional, for students, guardians and staff; no consent step. Students and guardians:
+  owner, head, admin, and the class teacher for their form class. Staff: their own on "My profile";
+  owner, head and admin through a simple staff list.
+- **Families are separate from guardianship.** `families` + `students.family_id`; one family per
+  child; "brothers and sisters" means same family, not shared guardian. A caregiver looking after
+  another family's child is just a guardian link. Automatic, editable name ("Mensah family").
+  Families page: owner, head, admin manage; bursar views.
+- **Linking:** owner, head, admin. At least one guardian and exactly one main contact. Merging
+  duplicate guardians waits (Sprint 5 import).
+- **WhatsApp:** changing the main phone offers "Also use this for WhatsApp" (ticked). Changing the
+  WhatsApp number clears consent; only people who can link may record it again.
+- **Look:** soft green panels in light, charcoal with a gold accent in dark. School is Beverly
+  Hills Academy; logos and inspiration are in `docs/design/`. Figtree, no animation library.
+
+How it works (things later sprints build on):
+
+- **Web data access** is in `features/*/hooks.ts` (TanStack Query over `lib/api.ts`). Sprint 4 swaps
+  reads to PowerSync there. Every save refreshes all loaded screens (`lib/use-save.ts`).
+- **Search text stays in memory** (`lib/search-text.tsx`), never in the address bar.
+- **Links:** `modules/links`. The student row is locked while its guardians change, so "one main
+  contact, at least one guardian" holds. Removing is archiving; "Undo" restores.
+- **Families:** a family with no children is kept but not listed.
+- **Photos:** private Supabase bucket `photos` (`pnpm storage:setup`, once per environment), paths
+  `school/table/row/uuid.jpg`, signed links that last 10 minutes. Old files are kept.
+- **Creates take ids from the device** (links, new guardians, medical notes, families), so a
+  repeated save adds nothing.
+- `apps/web/src/routeTree.gen.ts` is written by the router plugin (on `dev` and `build`). Commit it.
+- **End-to-end tests** (`pnpm test:e2e`) run locally against the dev Supabase project, not in CI.
+- Web crest images in `apps/web/public/brand/` are small copies of `docs/design/`.
 
 ## Sprint 0: Toolkit and first deploy
 

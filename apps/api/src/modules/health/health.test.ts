@@ -51,6 +51,7 @@ const VALID = {
   CORS_ORIGINS: 'http://localhost:5173',
   DATABASE_URL: 'postgresql://user:pass@localhost:5432/db',
   SUPABASE_URL: 'https://abcd.supabase.co',
+  SUPABASE_SECRET_KEY: 'test-secret',
 };
 
 describe('loadEnv', () => {
@@ -62,6 +63,7 @@ describe('loadEnv', () => {
     { name: 'bad PORT', input: { ...VALID, PORT: 'x' } },
     { name: 'missing DATABASE_URL', input: { ...VALID, DATABASE_URL: undefined } },
     { name: 'missing SUPABASE_URL', input: { ...VALID, SUPABASE_URL: undefined } },
+    { name: 'missing SUPABASE_SECRET_KEY', input: { ...VALID, SUPABASE_SECRET_KEY: undefined } },
   ])('fails fast on $name', ({ input }) => {
     expect(() => loadEnv(input)).toThrow(/Invalid API environment/);
   });

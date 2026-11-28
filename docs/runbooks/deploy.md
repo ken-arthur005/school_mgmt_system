@@ -12,11 +12,22 @@ Do these in order: the web app needs the API's URL, and the API needs the web ap
 2. When asked for the environment variables marked `sync: false`, set:
    - `APP_ENV` = `staging` (or `production` for the school's live system)
    - `CORS_ORIGINS` = a placeholder such as `https://example.com` for now (you fix it in step 3)
+   - `DATABASE_URL`, `SUPABASE_URL` and `SUPABASE_SECRET_KEY` for the same Supabase project
+     (see `apps/api/.env.example`). The secret key is used for photo storage.
 3. Deploy. Render builds `apps/api/Dockerfile` from the repo root and sets `PORT` itself.
 4. Check: open `https://<your-api>.onrender.com/health`. You should see
    `{"status":"ok","env":"staging"}`.
 
-`autoDeploy` is off: deploy from the Render dashboard (or turn it on once CI is trusted).
+`autoDeploy` is **on** (the developer's choice): every push to `main` deploys the API. So set any
+new environment variable and run any new migration **before** pushing code that needs it.
+
+### Database and photo storage
+
+From your machine, with `apps/api/.env` and `packages/db/.env` pointing at that Supabase project:
+
+1. `pnpm db:migrate` applies any new migrations. Do this **before** deploying API code that needs
+   them.
+2. `pnpm storage:setup` creates the private `photos` bucket (safe to run again).
 
 ## 2. Web on a Cloudflare Worker
 
@@ -43,8 +54,10 @@ the file too.
 3. Still in **Settings → Build**, under **Variables and secrets** (the _build_ variables, not the
    Worker's runtime variables), add:
    - `VITE_API_URL` = `https://<your-api>.onrender.com` (no trailing slash)
+   - `VITE_SUPABASE_URL` = `https://<project-ref>.supabase.co`
+   - `VITE_SUPABASE_PUBLISHABLE_KEY` = the project's **publishable** key (never the secret key)
 
-   This must be a **build** variable: Vite bakes it into the JavaScript while building. If it's
+   These must be **build** variables: Vite bakes it into the JavaScript while building. If it's
    missing, the build still succeeds but the page is blank, and the browser console shows
    `Invalid web environment`.
 
@@ -55,7 +68,7 @@ the file too.
 ### Checks
 
 - The build log ends with `Uploaded sch-mgmt-system` and `Deployed sch-mgmt-system`.
-- Opening the URL shows the School Manager page.
+- Opening the URL shows the sign-in screen.
 - `VITE_*` values are **public** (anyone can read them in the JavaScript). Never put secrets there.
 - Changing `VITE_API_URL` needs a new build: retry the latest deployment after changing it.
 
@@ -64,8 +77,7 @@ the file too.
 1. In Render, set `CORS_ORIGINS` to the Worker URL (comma-separate several, e.g. a custom domain too):
    `https://sch-mgmt-system.<your-account>.workers.dev,https://app.yourschool.edu.gh`
 2. Redeploy the API.
-3. Open the Worker URL on a phone. It should say **"API is healthy"**. This is the Sprint 0 "done"
-   check.
+3. Open the Worker URL on a phone, sign in, and open a student.
 
 ## If something goes wrong
 
@@ -73,6 +85,6 @@ the file too.
 | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Build log: `application detection logic has been run in the root of a workspace` | The deploy command doesn't start with `cd apps/web &&`. Fix it in **Settings → Build**.                                                                                                                                                 |
 | Build log: Worker name mismatch                                                  | `name` in `apps/web/wrangler.jsonc` differs from the Worker's name in the dashboard. Make them the same.                                                                                                                                |
-| Blank page; console says `Invalid web environment`                               | `VITE_API_URL` is missing from the **build** variables. Add it and retry the build.                                                                                                                                                     |
-| Page says "Can't reach the school server"                                        | Open `<api-url>/health` directly. If that fails, check the Render logs. If it works directly but not from the page, the browser blocked it: `CORS_ORIGINS` must match the page's address exactly (`https://`, host, no trailing slash). |
+| Blank page; console says `Invalid web environment`                               | A `VITE_` value is missing from the **build** variables. Add it and retry the build.                                                                                                                                                    |
+| Page says "We can’t reach the school server"                                     | Open `<api-url>/health` directly. If that fails, check the Render logs. If it works directly but not from the page, the browser blocked it: `CORS_ORIGINS` must match the page's address exactly (`https://`, host, no trailing slash). |
 | First load takes ~30 seconds                                                     | Free Render instances sleep when idle and need time to wake up.                                                                                                                                                                         |

@@ -14,6 +14,7 @@ export const TABLE_NAMES: readonly string[] = Object.values(schema).flatMap((val
 
 /** Tables carrying the audit_row_change trigger (see migrations/0001_triggers_and_rls.sql). */
 export const AUDITED_TABLES = [
+  'families',
   'students',
   'student_medical_notes',
   'guardians',

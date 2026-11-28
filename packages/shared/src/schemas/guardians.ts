@@ -6,6 +6,7 @@ import {
   paginationBodySchema,
   paginationQuerySchema,
   personNameSchema,
+  photoUrlSchema,
   searchTextSchema,
 } from './common';
 
@@ -27,6 +28,7 @@ export const guardianSummarySchema = z.object({
   otherNames: z.string().nullable(),
   primaryPhone: z.string(),
   whatsappPhone: z.string(),
+  photoUrl: photoUrlSchema,
 });
 export type GuardianSummary = z.infer<typeof guardianSummarySchema>;
 
@@ -47,7 +49,10 @@ export const guardianDetailSchema = guardianSummarySchema.extend({
   /** Only the children the caller is allowed to see. */
   children: z.array(
     z.object({
+      linkId: z.uuid(),
       studentId: z.uuid(),
+      className: z.string().nullable(),
+      photoUrl: photoUrlSchema,
       admissionNumber: z.string(),
       surname: z.string(),
       firstName: z.string(),
@@ -71,7 +76,7 @@ export const GUARDIAN_CONTACT_FIELDS = [
   'digitalAddress',
 ] as const;
 
-/** Names need `guardians.edit`. Links to students (relationship, main contact) come in Sprint 3. */
+/** Names need `guardians.edit`. Links to students are changed through the link endpoints. */
 export const guardianEditSchema = z
   .strictObject({
     surname: personNameSchema,

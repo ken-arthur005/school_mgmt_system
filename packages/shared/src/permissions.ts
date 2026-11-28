@@ -6,6 +6,8 @@ import type { StaffRole } from './enums';
  * the web app only uses them to hide buttons.
  */
 export const ACTIONS = [
+  // Using the app at all: your own name, roles, home screen and photo.
+  'profile.use',
   'students.read',
   'students.edit',
   'guardians.read',
@@ -14,6 +16,16 @@ export const ACTIONS = [
   // Contact details only (phones, email, address, occupation). Class teachers have this.
   'guardians.edit_contact',
   'medical_notes.read',
+  'medical_notes.edit',
+  // Linking guardians to students, including the main contact and WhatsApp consent.
+  'guardians.link',
+  // Photos of students and guardians.
+  'photos.edit',
+  'families.read',
+  'families.manage',
+  'staff.read',
+  // Photos of other members of staff (everyone may change their own).
+  'staff.photo',
   // Money. Kept coarse until fees and payments are built (Sprints 6–7).
   'fees.read',
   'fees.manage',
@@ -41,22 +53,36 @@ const STUDENT_RECORDS: readonly Action[] = [
   'medical_notes.read',
 ];
 
+/** What the school office does on top of reading and editing records. */
+const OFFICE: readonly Action[] = [
+  ...STUDENT_RECORDS,
+  'medical_notes.edit',
+  'guardians.link',
+  'photos.edit',
+  'families.read',
+  'families.manage',
+  'staff.read',
+  'staff.photo',
+];
+
 /** The one place roles get their powers. */
 export const PERMISSIONS: Readonly<Record<StaffRole, readonly Action[]>> = {
-  owner: [...STUDENT_RECORDS, ...MONEY],
-  head: [...STUDENT_RECORDS, ...MONEY],
-  admin: [...STUDENT_RECORDS],
-  bursar: ['students.read', 'guardians.read', ...MONEY],
+  owner: ['profile.use', ...OFFICE, ...MONEY],
+  head: ['profile.use', ...OFFICE, ...MONEY],
+  admin: ['profile.use', ...OFFICE],
+  bursar: ['profile.use', 'students.read', 'guardians.read', 'families.read', ...MONEY],
   class_teacher: [
+    'profile.use',
     'students.read',
     'guardians.read',
     'guardians.edit_contact',
     'medical_notes.read',
+    'photos.edit',
   ],
-  subject_teacher: ['students.read'],
-  housemaster: ['students.read', 'guardians.read', 'medical_notes.read'],
+  subject_teacher: ['profile.use', 'students.read'],
+  housemaster: ['profile.use', 'students.read', 'guardians.read', 'medical_notes.read'],
   // Settings and user management arrive with the setup screens (Sprint 5).
-  system_admin: [],
+  system_admin: ['profile.use'],
 };
 
 /**

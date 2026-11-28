@@ -1,31 +1,81 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+@import '@fontsource-variable/figtree';
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Beverly Hills Academy. Light: pale ground, white panels, spruce actions, navy text.
+ * Dark: navy-tinted charcoal with gold actions. Gold is never text on a light surface.
+ */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --success: oklch(0.52 0.14 150);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  color-scheme: light;
+  --radius: 0.875rem;
+  --background: #f1f5f3;
+  --foreground: #14213d;
+  --card: #ffffff;
+  --card-foreground: #14213d;
+  --primary: #004f2d;
+  --primary-foreground: #ffffff;
+  --secondary: #e8eef0;
+  --secondary-foreground: #14213d;
+  --muted: #e8eef0;
+  --muted-foreground: #4a5772;
+  --accent: #e3efe8;
+  --accent-foreground: #004f2d;
+  --gold: #ffda22;
+  --gold-foreground: #14213d;
+  --avatar: #e4d8de;
+  --avatar-foreground: #14213d;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --warning: #fff0c9;
+  --warning-foreground: #5c3b00;
+  --border: #d5dfe5;
+  --input: #74849a;
+  --ring: #004f2d;
+  --feature-from: #004f2d;
+  --feature-to: #0b6b43;
+  --feature-foreground: #ffffff;
+  --shadow-panel: 0 1px 2px rgb(20 33 61 / 0.06), 0 8px 24px -16px rgb(20 33 61 / 0.18);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #0e1118;
+  --foreground: #eef1f6;
+  --card: #171c27;
+  --card-foreground: #eef1f6;
+  --primary: #ffda22;
+  --primary-foreground: #14213d;
+  --secondary: #222939;
+  --secondary-foreground: #eef1f6;
+  --muted: #222939;
+  --muted-foreground: #aab4c8;
+  --accent: #2f2c18;
+  --accent-foreground: #ffe566;
+  --avatar: #4a3b45;
+  --avatar-foreground: #f6ecf1;
+  --destructive: #ff9d94;
+  --destructive-foreground: #2b0a07;
+  --warning: #3a2c08;
+  --warning-foreground: #ffe3a1;
+  --border: #2a3245;
+  --input: #687590;
+  --ring: #ffda22;
+  --feature-from: #0a3a26;
+  --feature-to: #10261f;
+  --feature-foreground: #f2fbf6;
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 28px -18px rgb(0 0 0 / 0.7);
 }
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, sans-serif;
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --shadow-panel: var(--shadow-panel);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -36,11 +86,20 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-avatar: var(--avatar);
+  --color-avatar-foreground: var(--avatar-foreground);
   --color-destructive: var(--destructive);
-  --color-success: var(--success);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-feature-foreground: var(--feature-foreground);
 }
 
 @layer base {
@@ -50,8 +109,69 @@
   html {
     /* Readable on small phones; never below 16px so mobile browsers don't zoom inputs. */
     font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-color: var(--border) transparent;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    letter-spacing: -0.015em;
+  }
+  ::selection {
+    background: var(--gold);
+    color: var(--gold-foreground);
+  }
+  input,
+  textarea {
+    caret-color: var(--primary);
+  }
+  button:not(:disabled),
+  select:not(:disabled),
+  summary,
+  [role='button'] {
+    cursor: pointer;
+  }
+}
+
+@utility feature-surface {
+  background-image: linear-gradient(135deg, var(--feature-from), var(--feature-to));
+  color: var(--feature-foreground);
+}
+
+/* A short cross-fade between screens (browsers without view transitions just switch). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after,
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Paper: black on white, no menus or buttons. */
+@media print {
+  :root,
+  .dark {
+    --background: #ffffff;
+    --foreground: #000000;
+    --card: #ffffff;
+    --card-foreground: #000000;
+    --muted-foreground: #333333;
+    --border: #999999;
+    --shadow-panel: none;
   }
 }

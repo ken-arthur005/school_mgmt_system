@@ -1,0 +1,26 @@
+export const homeCopy = {
+  morning: 'Good morning',
+  afternoon: 'Good afternoon',
+  evening: 'Good evening',
+  myClass: 'My class',
+  findStudent: 'Find a student',
+  findStudentHint: 'By name, number or a parent’s phone',
+  findParent: 'Find a parent',
+  findParentHint: 'By name or phone',
+  classes: 'Classes',
+  classesHint: 'Open a class list',
+  families: 'Families',
+  familiesHint: 'Brothers and sisters together',
+  staff: 'Staff',
+  staffHint: 'Staff list and photos',
+  nothingTitle: 'There is nothing here for your login yet.',
+  nothingBody: 'Your tasks will appear here as new parts of the system arrive.',
+  help: {
+    title: 'Your home screen',
+    lines: [
+      'The big buttons open your everyday tasks.',
+      'The search box at the top finds any student you are allowed to see.',
+      'The numbers count students in school this year.',
+    ],
+  },
+};

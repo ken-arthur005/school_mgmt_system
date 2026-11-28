@@ -13,3 +13,10 @@ export function schoolToday(now: Date = new Date(), timeZone: string = SCHOOL_TI
     day: '2-digit',
   }).format(now);
 }
+
+/** A date-only value (`YYYY-MM-DD`) or timestamp as the school writes it: `DD/MM/YYYY`. */
+export function formatDate(value: string): string {
+  const date = value.length === 10 ? value : schoolToday(new Date(value));
+  const [year, month, day] = date.split('-');
+  return `${day}/${month}/${year}`;
+}

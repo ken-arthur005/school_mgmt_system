@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { schoolToday } from './dates';
+import { formatDate, schoolToday } from './dates';
 
 describe('schoolToday', () => {
   test.each([
@@ -14,5 +14,15 @@ describe('schoolToday', () => {
 
   test('defaults to Africa/Accra', () => {
     expect(schoolToday(new Date('2026-09-07T23:59:00Z'))).toBe('2026-09-07');
+  });
+});
+
+describe('formatDate', () => {
+  test.each([
+    ['2026-01-05', '05/01/2026'],
+    ['2015-12-31', '31/12/2015'],
+    ['2026-10-15T23:30:00.000Z', '15/10/2026'],
+  ])('%s → %s', (value, expected) => {
+    expect(formatDate(value)).toBe(expected);
   });
 });

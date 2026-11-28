@@ -2,9 +2,9 @@ import { type Db, schema, type Tx } from '@school-mgmt/db';
 import type { GuardianEdit, GuardianListQuery } from '@school-mgmt/shared';
 import { and, asc, count, eq, exists, isNull, or, type SQL, sql } from 'drizzle-orm';
 import type { StudentReach } from '../../access';
-import { nameMatches, type SearchText, studentInReach } from '../students/repo';
+import { nameMatches, type SearchText, studentInReach, thisYearsEnrolment } from '../students/repo';
 
-const { guardians, studentGuardians, students } = schema;
+const { classes, enrolments, guardians, studentGuardians, students } = schema;
 
 /**
  * SQL condition: the guardian (`guardians.id`) is within reach. School-wide reach sees every
@@ -69,6 +69,7 @@ export async function listGuardians(
       otherNames: guardians.otherNames,
       primaryPhone: guardians.primaryPhone,
       whatsappPhone: guardians.whatsappPhone,
+      photoPath: guardians.photoPath,
     })
     .from(guardians)
     .where(where)
@@ -109,10 +110,18 @@ export async function isGuardianInReach(
 /** The guardian's children that the caller may see. */
 export async function listChildren(
   db: Db,
-  params: { schoolId: string; guardianId: string; reach: StudentReach },
+  params: {
+    schoolId: string;
+    guardianId: string;
+    reach: StudentReach;
+    academicYearId: string | null;
+  },
 ) {
   return db
     .select({
+      linkId: studentGuardians.id,
+      className: classes.name,
+      photoPath: students.photoPath,
       studentId: students.id,
       admissionNumber: students.admissionNumber,
       surname: students.surname,
@@ -124,6 +133,8 @@ export async function listChildren(
     })
     .from(studentGuardians)
     .innerJoin(students, eq(students.id, studentGuardians.studentId))
+    .leftJoin(enrolments, thisYearsEnrolment(params.academicYearId))
+    .leftJoin(classes, eq(classes.id, enrolments.classId))
     .where(
       and(
         eq(studentGuardians.schoolId, params.schoolId),
@@ -144,4 +155,22 @@ export async function updateGuardian(
     .update(guardians)
     .set(params.changes)
     .where(and(eq(guardians.schoolId, params.schoolId), eq(guardians.id, params.id)));
+}
+
+/** Consent was given for a particular number, so a new WhatsApp number starts without it. */
+export async function clearWhatsappConsent(
+  tx: Tx,
+  params: { schoolId: string; guardianId: string },
+): Promise<void> {
+  await tx
+    .update(studentGuardians)
+    .set({ whatsappOptIn: false, whatsappOptInAt: null })
+    .where(
+      and(
+        eq(studentGuardians.schoolId, params.schoolId),
+        eq(studentGuardians.guardianId, params.guardianId),
+        eq(studentGuardians.whatsappOptIn, true),
+        isNull(studentGuardians.archivedAt),
+      ),
+    );
 }
