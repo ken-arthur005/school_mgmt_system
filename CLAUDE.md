@@ -547,9 +547,9 @@ unclear and ask.
 The work is split into phases and one-week-style sprints, but **sprints are numbered, not dated**.
 Do the current sprint's work; don't build later-sprint features early unless asked.
 
-**Current sprint: Sprint 3** ← Claude Code updates this line, only when a sprint is completely done (see §17).
+**Current sprint: Sprint 4** ← Claude Code updates this line, only when a sprint is completely done (see §17).
 
-**Completed sprints:** Sprint 0, Sprint 1, Sprint 2
+**Completed sprints:** Sprint 0, Sprint 1, Sprint 2, Sprint 3
 
 ### Phase 1: Money and records (Sprints 0–11)
 
@@ -577,7 +577,7 @@ Do the current sprint's work; don't build later-sprint features early unless ask
 - Tests for every role's access to every endpoint. CI runs typecheck + tests on every PR.
 - *Done when:* a class-teacher token can read their class but gets 403 on anything money-related.
 
-**Sprint 3: Staff app and student records**
+**Sprint 3: Staff app and student records** ✅ Done
 - App shell: login, a home screen per role with big task buttons.
 - Global search (name, admission number, phone).
 - Student profile: details, guardians, siblings, medical notes; edit with validation.

@@ -11,10 +11,9 @@ reasoning lives in `docs/decisions/`. Update this file as decisions happen, not 
 - **Phone sign-in:** Sprint 8, via Supabase's Send SMS hook → our SMS adapter (see Sprint 2).
 - **Deploys:** Render `autoDeploy` is on, on purpose: a push to `main` deploys the API. Set new
   variables and run new migrations **before** pushing.
-- **Sprint 3 deploy:** Render (the API) needs `SUPABASE_SECRET_KEY`; the developer reports the key
-  and web build variables as set in Cloudflare (28/11/2026), Render still to be
-  confirmed. Supabase `school_mgmt_system` (dev) has migrations 0000-0004, fresh seed data, dev
-  logins and the private `photos` bucket.
+- **Sprint 3 deploy:** done and confirmed by the developer (28/11/2026), including
+  `SUPABASE_SECRET_KEY` on Render. Supabase `school_mgmt_system` (dev) has migrations 0000-0004,
+  seed data, dev logins and the private `photos` bucket.
 - **Device id:** `app.device_id` stays empty until the `devices` table arrives (Sprint 4).
 - **Boarders** are `enrolments.is_boarder` in the current year (the seed sets it for JHS 3).
   Housemasters see these students. Houses and beds come in Phase 4.
@@ -69,6 +68,12 @@ How it works (things later sprints build on):
 - `apps/web/src/routeTree.gen.ts` is written by the router plugin (on `dev` and `build`). Commit it.
 - **End-to-end tests** (`pnpm test:e2e`) run locally against the dev Supabase project, not in CI.
 - Web crest images in `apps/web/public/brand/` are small copies of `docs/design/`.
+
+Sprint 3 wrap-up (28/11/2026):
+
+- The developer confirmed the teacher flow works on the deployed app from a real phone.
+- Speed is acceptable for now. Each local browser-test flow took about 20 seconds; the cause was
+  not measured. Look at it alongside the web bundle size in Sprint 4.
 
 ## Sprint 0: Toolkit and first deploy
 
