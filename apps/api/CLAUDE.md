@@ -27,10 +27,13 @@ src/
 ```
 
 ## Rules
-- **Routes are thin.** Validation (zod type provider) → `requirePermission(action)` → service →
-  response. No business logic in route handlers.
-- **Every route declares its permission** and is covered by role-access tests. A route without a
-  permission check must not be merged.
+- **Routes are thin.** Sign-in and permission check (`plugins/auth.ts`, from the route's
+  `config.permission`) → validation (zod type provider) → service → response. No business logic
+  in route handlers.
+- **Every route declares its permission** in `config: { permission: 'domain.verb' }` (or a list,
+  where any one is enough), or `config: { public: true }` for routes like `/health`. The app throws
+  at startup if a route has neither. Every route is covered by role-access tests
+  (`src/modules/access-matrix.test.ts`).
 - **Scoping:** every repo query filters by `school_id`; teacher-facing queries also filter by
   `staff_assignments`. Never accept `school_id` from the client; take it from the authenticated user.
 - **Transactions** for any multi-row write (billing, payment + allocations, imports, promotions).
